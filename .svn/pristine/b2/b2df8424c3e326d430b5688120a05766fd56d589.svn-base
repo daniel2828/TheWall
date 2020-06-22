@@ -1,0 +1,123 @@
+/*CSS Document*/
+
+body{background-color: #2b2d32; font-family: 'Open Sans', sans-serif;padding-top: 60px;overflow-x: hidden;}
+.loginBg{background: url(../img/parallax/back.png);background-color: #ccc;background:  url(../img/back.png), #FFF repeat-x;background-repeat: repeat-x;}
+ul{padding: 0; list-style: none;}
+a:hover{text-decoration: none;}
+
+h1, h2, h3{font-family: 'Montserrat', sans-serif;}
+.animation { -webkit-transition: all 0.3s ease-in-out; -moz-transition: all 0.3s ease-in-out; -o-transition: all 0.3s ease-in-out; transition: all 0.3s ease-in-out;}
+.vertical-offset-100{ padding-top:100px;}
+.btn-red{background-color: #E41F29;color: #fff;font-weight: 700;}
+
+.login-panel{ border: none;}
+.login-panel .panel{ border:  none; box-shadow: 0px 3px 15px rgba(0, 0, 0, 0.32);}
+.login-panel .panel-heading{ background-color: #333333;padding-top: 20px;}
+.login-panel .panel-heading img{ width: 100%;}
+.login-panel .panel-title{ font-size: 13px; color: #fff;text-align: center;margin-top: 20px;}
+.login-panel .btn-red{}
+.login-panel .btn-red:hover{  background-color: #F8606C;}
+
+
+.navbar{background: #FFFFFF;position: fixed;top: 0px;left: 0px;width: 100%;z-index: 100;border-radius: 0px;border: 0;/* box-shadow: 0px 0px 4px #878787; */height: auto;/* border-bottom: 2px solid #EA4141; */margin-bottom: 15px;}
+nav.navbar.navbar-default {
+    box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.55);
+}
+.navbar .container-fluid{padding: 0;}
+.navbar-brand{padding: 2px 12px 2px 30px;}
+.navbar-brand img{ height: 100%;}
+.navbar-search{}
+.navbar-search input{/* border:none; */border-radius: 20px;}
+.navbar-search button{width: 34px; height: 34px;background-color: transparent;border: none;font-size: 23px;border-radius: 40px;padding: 0px 2px;color: #333;}
+.button-nav-icon{float: right;color: #2B2D32;font-size: 24px;padding-top: 8px;margin-left: 10px;margin-right: 10px;}
+.button-nav-icon:hover{color: #2B2D32;}
+.user-logged{float: right;color: #2B2D32;margin-left: 30px;padding-top: 15px;}
+.navbar-collapse{padding:0px}
+
+.table-responsive{width: 100%;border: none;}
+.panel{border: none; border-radius:0px;background-color: #FFF;box-shadow: 0 1px 1px rgba(0, 0, 0, 0.98);}
+.panel-heading{background-color: #414347 !important;color: #fff!important;font-weight: bold;border: none !important;border-radius: 0px;}
+.table-bordered{
+    width: 100%;
+    border: none;
+}
+.table-bordered tr:first-child{background: #414347;color: #fff;font-weight: bold;}
+.table-bordered th{border: none!important;width: auto!important;}
+.table-bordered td button, .table-bordered td input[type="submit"],.table-bordered td .btn {background: #30D981;color: #fff;border: none;border-radius: 5px;padding: 3px 9px;width: 100%;font-weight: 600;}
+.table-bordered td input[type="text"]{
+    border: 1px solid #E3A3A3;
+    padding-left: 3px;
+    border-radius: 5px;
+    max-width: 100px;
+}
+.pastilla-info{font-size: 13px;color: #333;      text-align: left;      background-color: #FFFFFF;      padding: 2px 2px 2px 11px;      width: auto;      border-radius: 7px;display: inline-block;margin: 10px 0px 10px;font-weight: 600;border: 1px solid #ccc;line-height: 3;}
+.pastilla-info span{font-weight:800;color: #30D981;border-radius: 6px;padding: 5px;}
+.excel-btn{border: none;background-color: #D4D6DE;color: #414347;padding: 7px 16px;border-radius: 3px;font-weight: 700;margin-left: 10px;float: right;line-height: 2;}
+.excel-btn:hover{background-color: #61FFB5;}
+.excel-btn i{margin-right: 4px;font-size: 18px;}
+
+.item-score{ float: right;position: absolute;right: 4px;bottom: 4px;padding: 3px 8px 3px 8px;width: auto;/* box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.15) inset; *//* border-right: 4px solid#fff; *//* border-bottom: 4px solid #fff; */border-radius: 16px;color: #fff;text-align: right;}
+.item-score .fa{font-size: 14px;position: relative;top: -2px;margin-right: 1px;border-right: 1px solid #fff;padding-right: 5px;}
+.item-score span{ color: #fff;text-align: right;line-height: 1;font-size: 12px;}
+.item-score .score-number{font-weight: 700;font-size: 20px;}
+.score0{ background-color: #727272;}
+.score1{ background-color: #5CBDFF;}
+.score2{ background-color: #8AE172;}
+.score3{ background-color: #F8D355;}
+.score4{ background-color: #F8A655;}
+.score5{ background-color: #EC5353;}
+
+.pagination{margin: 24px 0px 0px; font-size:20px; padding:0px;border-radius: 4px;border: 0;}
+.pagination tr:first-child{
+    background-color: #fff;
+    border: none;
+}
+.pagination td{
+    /* border: 1px solid #ccc; */
+    border: none;
+}
+.pagination td a{color: #333; font-size: 16px;padding: 3px 8px;      background-color: #fff;      border: 1px solid #DDD;}
+.pagination td span{color: #1FBB6A; font-size: 16px;font-weight: 700;padding: 3px 8px;background-color: #fff;border: 1px solid #DDD;}
+.pagination > .active > a, .pagination > .active > span, .pagination > .active > a:hover, .pagination > .active > span:hover, .pagination > .active > a:focus, .pagination > .active > span:focus { z-index: 2; color: #fff; cursor: default; background-color: #EA4141; border-color: #EA4141;}
+
+/* Small devices (smartphones, 767px or less) */
+@media (max-width:767px) { 
+
+.grid-item { width: 100%;}
+.navbar-collapse{background-color:#252525;}
+.navbar-search{border: none;float: left;width: 100%;padding: 0;margin-left: 0px;}
+.navbar-search .form-group{width: 81%;margin-right: 3%;display: inline-block;float: left;}
+.navbar-search input{border-radius: 10px;width: 100%;float: left;margin-bottom: 5px;}
+.navbar-search button{width: 16%; height: 34px;border: none;font-size: 20px;border-radius: 40px;padding: 0px 2px;color: #fff;float: left;}
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width:768px) { 
+
+.grid-item { width: 50%;}
+
+}
+
+
+/* Large devices (desktops, 992px and up) */ 
+
+@media (min-width:992px) {
+
+.grid-item { width: 33%;}
+
+}
+
+/* Large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) { 
+
+.grid-item { width: 25%;}
+
+}
+
+
+/* Large devices (large desktops, 1200px and up) */
+@media (min-width: 1500px) { 
+
+.grid-item { width: 20%;}
+
+}

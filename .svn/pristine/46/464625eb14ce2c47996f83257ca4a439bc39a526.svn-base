@@ -1,0 +1,358 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+
+public partial class comunityManagers : System.Web.UI.Page
+{
+    public bool verBtn = true;
+    public string nombreUsuario="";
+    DataTable tbTiposRS;
+
+    protected void Page_Init(object sender, EventArgs e)
+    {
+        tbTiposRS = C_FuncionesGenerales.getRRSS();
+    }
+
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        nombreUsuario= C_administradores.nombre;
+        //
+        ScriptManager scriptManager = ScriptManager.GetCurrent(this.Page);
+        scriptManager.RegisterPostBackControl(this.btnExcel);
+        //
+        if (!Page.IsPostBack)
+        {
+            if (C_administradores.codigo <= 0)
+            {
+                C_administradores.desconectar(true);
+                Response.Redirect("~/login.aspx", false);
+            }
+            else
+            {
+                bindRS();
+                bindPais();
+                bindDatos();
+            }
+        }
+
+        C_administradores proxyAdmin = new C_administradores();
+        if (!proxyAdmin.tengoPermiso(1))
+        {
+            C_administradores.desconectar(true);           
+        }
+        if (!proxyAdmin.tengoPermiso(2))
+        {
+            phGotoMuro.Visible = false;
+        }
+        else {
+            phGotoMuro.Visible = true;
+        }
+    }
+
+    protected void bindDatos()
+    {
+     
+        try
+        {
+            C_comunityManager proxy = new C_comunityManager();
+             DataTable datos = proxy.getCM(null, Convert.ToInt32(dpSearchRS.SelectedValue), null, dpSearchPais.SelectedValue, searchBt.Value);
+            if (datos.Rows.Count == 0)
+            {
+                DataRow filaAux = datos.NewRow();
+                filaAux["codigoCM"] = "";
+                filaAux["codigoRS"] = 0;
+                filaAux["nombre"] = "";
+                filaAux["nickname"] = "";
+                filaAux["numAmigos"] = 0;
+                filaAux["localizacion"] = "";
+                filaAux["activo"] = 0;
+                filaAux["asignado"] = 0;
+                filaAux["contacto"] = "";
+                datos.Rows.Add(filaAux);
+                verBtn = false;
+            }
+            //
+            tbTotales.Text = datos.Rows.Count.ToString();
+            gvPost.DataSource = datos;
+            gvPost.DataBind();
+        }
+        catch (Exception e) {
+            throw e;
+        
+        
+        }
+    }
+
+    protected void bindRS()
+    {
+        dpSearchRS.DataSource = C_FuncionesGenerales.getRRSS();
+        dpSearchRS.DataTextField = "descripcion";
+        dpSearchRS.DataValueField = "codigo";
+        dpSearchRS.DataBind();
+        ListItem item = new ListItem("Elige una red social", "0");
+        dpSearchRS.Items.Add(item);
+        dpSearchRS.SelectedIndex = dpSearchRS.Items.Count - 1;
+    }
+
+    protected void bindPais()
+    {
+        dpSearchPais.DataSource = C_FuncionesGenerales.getPaises();
+        dpSearchPais.DataTextField = "nombre";
+        dpSearchPais.DataValueField = "codigo";
+        dpSearchPais.DataBind();
+        ListItem item = new ListItem("Elige un país", "");
+        dpSearchPais.Items.Add(item);
+        dpSearchPais.SelectedIndex = dpSearchPais.Items.Count - 1;
+    }
+
+    protected void dpTipoRS_Load(object sender, EventArgs e)
+    {
+        DropDownList ctrlNRS = (DropDownList)sender;
+        ctrlNRS.DataSource = tbTiposRS;
+        ctrlNRS.DataTextField = "descripcion";
+        ctrlNRS.DataValueField = "codigo";
+        ctrlNRS.DataBind();
+    }
+
+    protected void gvPost_PageIndexChanging(object sender, GridViewPageEventArgs e)
+    {
+        gvPost.EditIndex = -1;
+        gvPost.PageIndex = e.NewPageIndex;
+        bindDatos();
+    }
+
+    protected void gvPost_RowEditing(object sender, GridViewEditEventArgs e)
+    {
+
+        gvPost.EditIndex = e.NewEditIndex;
+        bindDatos();
+    }
+
+    protected void gvPost_RowCancelingEdit(object sender, GridViewCancelEditEventArgs e)
+    {
+        gvPost.EditIndex = -1;
+        bindDatos();
+    }
+
+    protected void gvPost_RowCommand(object sender, GridViewCommandEventArgs e)
+    {
+        C_comunityManager objCM = new C_comunityManager();
+        string codigoCM;
+        string codigoRS;
+        string[] commandArgs;
+        //
+        switch (e.CommandName)
+        {
+            case "Guardar":
+                //
+                codigoCM = ((TextBox)gvPost.Rows[gvPost.EditIndex].FindControl("hidCM")).Text;
+                codigoRS = ((TextBox)gvPost.Rows[gvPost.EditIndex].FindControl("hidRS")).Text;
+                //string codigoCMNew = ((TextBox)gvPost.Rows[gvPost.EditIndex].FindControl("tbCM")).Text;
+                //string codigoRSNew = ((DropDownList)gvPost.Rows[gvPost.EditIndex].FindControl("dpRS")).SelectedValue;
+                string nombre = ((TextBox)gvPost.Rows[gvPost.EditIndex].FindControl("tbNombre")).Text;
+                string nickname = ((Label)gvPost.Rows[gvPost.EditIndex].FindControl("tbNickName")).Text;
+                string nAmigos = ((Label)gvPost.Rows[gvPost.EditIndex].FindControl("tbNAmigos")).Text;
+                string agrupacion = ((DropDownList)gvPost.Rows[gvPost.EditIndex].FindControl("dpAgrupacion")).SelectedValue.ToString();
+                string idpais = hidCodPais.Value;
+                string pais = ((TextBox)gvPost.Rows[gvPost.EditIndex].FindControl("tbPais")).Text;
+                // DUDA
+                string contacto = ((TextBox)gvPost.Rows[gvPost.EditIndex].FindControl("tbContacto")).Text;
+                //bool activo = ((CheckBox)gvPost.Rows[gvPost.EditIndex].FindControl("chkActivo")).Checked;
+                bool asignado = ((CheckBox)gvPost.Rows[gvPost.EditIndex].FindControl("chkAsignado")).Checked;
+                if (nAmigos.Trim()=="")
+                {
+                    nAmigos="0";
+                }
+                if (nombre.Trim()=="" ||nickname.Trim()=="" ||nAmigos.Trim()=="" ||agrupacion.Trim()=="" ||pais.Trim()=="")
+                {
+                    ScriptManager.RegisterStartupScript(this.Page, this.Page.GetType(), "validacionEditar", "alert('Por favor, debes rellenar todos los campos');", true);
+
+                }
+                else
+                {
+                    int resultado = objCM.guardarCM(Convert.ToInt32(codigoRS), codigoCM, nombre, nickname, /*activo,*/ Convert.ToInt32(nAmigos), agrupacion, pais, asignado, idpais, contacto);
+                    gvPost.EditIndex = -1;
+                    bindDatos();
+                }
+
+                break;
+            case "Borrar":
+                //
+                codigoCM = e.CommandArgument.ToString();
+                objCM.deleteCM( codigoCM);
+                gvPost.EditIndex = -1;
+                bindDatos();
+                break;
+            case "GuardarNuevo":
+                //
+                string CMNuevo = ((TextBox)gvPost.FooterRow.FindControl("tbNuevoCM")).Text;
+                string nombreNuevo = ((TextBox)gvPost.FooterRow.FindControl("tbNuevoNombre")).Text;
+                string nicknameNuevo = ((TextBox)gvPost.FooterRow.FindControl("tbNuevoNickName")).Text;
+                string RSNuevo = ((DropDownList)gvPost.FooterRow.FindControl("dpNuevoRS")).SelectedValue.ToString();
+                string nAmigosNuevo = ((TextBox)gvPost.FooterRow.FindControl("tbNuevoNAmigos")).Text;
+                string agrupacionNuevo = ((DropDownList)gvPost.FooterRow.FindControl("dpNuevoAgrupacion")).SelectedValue.ToString();
+                string idpaisNuevo = hidCodPais.Value;
+                string paisNuevo = ((TextBox)gvPost.FooterRow.FindControl("tbNuevoPais")).Text;
+
+                // DUDA
+                string contactoNuevo = ((TextBox)gvPost.FooterRow.FindControl("tbNuevoContacto")).Text;
+                //bool activoNuevo = ((CheckBox)gvPost.FooterRow.FindControl("chkNuevoActivo")).Checked;
+                bool asignadoNuevo = ((CheckBox)gvPost.FooterRow.FindControl("chkNuevoAsignado")).Checked;
+                if (nAmigosNuevo.Trim()=="") {
+                    nAmigosNuevo="0";
+                }
+                if (CMNuevo.Trim()=="" ||nombreNuevo.Trim()=="" ||nicknameNuevo.Trim()=="" ||RSNuevo.Trim()=="" ||nAmigosNuevo.Trim()=="" ||agrupacionNuevo.Trim()=="" ||paisNuevo.Trim()=="")
+                {
+                    ScriptManager.RegisterStartupScript(this.Page, this.Page.GetType(), "validacionNuevo", "alert('Por favor, debes rellenar todos los campos');", true);
+
+                }
+                else
+                {
+                    int result = objCM.guardarCM(Convert.ToInt32(RSNuevo), CMNuevo, nombreNuevo, nicknameNuevo,/* activoNuevo,*/ Convert.ToInt32(nAmigosNuevo), agrupacionNuevo, paisNuevo, asignadoNuevo, idpaisNuevo, contactoNuevo);
+                    gvPost.EditIndex = -1;
+                    bindDatos();
+                }
+                break;
+        }
+    }
+
+    protected void btnExcel_Click(object sender, EventArgs e)
+    {
+        C_comunityManager proxy = new C_comunityManager();
+        DataTable datos = new DataTable();
+        datos = proxy.getExcel(Convert.ToInt32(dpSearchRS.SelectedValue), dpSearchPais.SelectedValue, searchBt.Value);
+
+        string strTipoMIME = "application/ms-excel";
+
+        Page.Response.Clear();
+        Response.Buffer = true;
+        Response.Charset = "";
+        this.EnableViewState = false;
+
+        Page.Response.ClearHeaders();
+        Page.Response.ClearContent();
+        Page.Response.ContentType = strTipoMIME;
+        Page.Response.AddHeader("Content-Disposition", "attachment;filename=listado_ComunnityManager.xls");
+        HttpContext.Current.Response.Charset = "utf-8";
+        HttpContext.Current.Response.ContentEncoding = System.Text.Encoding.GetEncoding("iso-8859-3");
+        HttpContext.Current.Response.Write("<Table border='1' > <TR style='background-color: #EA4141'>");
+        //am getting my grid's column headers
+        int columnscount = datos.Columns.Count;
+
+        for (int j = 0; j < columnscount; j++)
+        {   //write in new column
+            HttpContext.Current.Response.Write("<Td>");
+            //Get column headers  and make it as bold in excel columns
+            HttpContext.Current.Response.Write("<B>");
+            HttpContext.Current.Response.Write(datos.Columns[j].ColumnName);
+            HttpContext.Current.Response.Write("</B>");
+            HttpContext.Current.Response.Write("</Td>");
+        }
+        HttpContext.Current.Response.Write("</TR>");
+        int cont = 0;
+        foreach (DataRow row in datos.Rows)
+        {//write in new row
+            if (cont % 2 == 0)
+                HttpContext.Current.Response.Write("<TR>");
+            else
+                HttpContext.Current.Response.Write("<TR style='background:#CCC;'>");
+            cont++;
+            for (int i = 0; i < datos.Columns.Count; i++)
+            {
+                HttpContext.Current.Response.Write("<Td>");
+                HttpContext.Current.Response.Write(row[i].ToString());
+                HttpContext.Current.Response.Write("</Td>");
+            }
+
+            HttpContext.Current.Response.Write("</TR>");
+        }
+        HttpContext.Current.Response.Write("</Table>");
+        HttpContext.Current.Response.Write("</font>");
+        HttpContext.Current.Response.Flush();
+        HttpContext.Current.Response.End();
+    }
+
+    protected string rs(object rrss)
+    {
+        string rs = "";
+        switch (rrss.ToString())
+        {
+            case "1":
+                rs = "Facebook";
+                break;
+            case "2":
+                rs = "Twitter";
+                break;
+            case "3":
+                rs = "Instagram";
+                break;
+            case "4":
+                rs = "YouTube";
+                break;
+            default:
+                rs = "";
+                break;
+        }
+        return rs;
+    }
+
+
+
+
+    protected void btDesconectar_Click ( object sender, EventArgs e )
+    {
+        try
+        {
+            C_administradores.desconectar(true);
+            Response.Redirect("~/login.aspx", false);
+
+        }
+        catch (Exception ex)
+        {
+            //string codigoError = C_FuncionesGenerales.registroErrores("ws.asmx -> damePosts -> " + ex.Message).ToString();
+            //    throw new Exception("Error de conexión. Cód Error:" + ex.Message);
+
+        }
+    }
+
+    protected void lnkSearch_Click(object sender, EventArgs e)
+    {
+        bindDatos();
+    }
+
+    protected void gvPost_RowDataBound ( object sender, GridViewRowEventArgs e )
+    {
+        if (e.Row.RowType == DataControlRowType.DataRow)
+        {
+            if ((e.Row.RowState & DataControlRowState.Edit) > 0)
+            {
+                hidCodPais.Value = ((TextBox)e.Row.FindControl("hidPais")).Text;
+                TextBox hidAgrupacion = (TextBox)e.Row.FindControl("hidAgrupacion");
+                DropDownList dpAgrupacion = (DropDownList)e.Row.FindControl("dpAgrupacion");
+                // bind DropDown manually
+                dpAgrupacion.DataSource = C_FuncionesGenerales.getAgrupacionesPaises();
+                dpAgrupacion.DataTextField = "agrupacion";
+                dpAgrupacion.DataValueField = "codigo";
+                dpAgrupacion.DataBind();
+                dpAgrupacion.SelectedValue = hidAgrupacion.Text; // you can use e.Row.DataItem to get the value
+            }
+        }
+        if (e.Row.RowType == DataControlRowType.Footer)
+        {
+
+            DropDownList dpAgrupacion = (DropDownList)e.Row.FindControl("dpNuevoAgrupacion");
+            // bind DropDown manually
+            dpAgrupacion.DataSource = C_FuncionesGenerales.getAgrupacionesPaises();
+            dpAgrupacion.DataTextField = "agrupacion";
+            dpAgrupacion.DataValueField = "codigo";
+            dpAgrupacion.DataBind();
+        
+        
+        
+        }
+    }
+}

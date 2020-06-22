@@ -1,0 +1,1025 @@
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Runtime.Serialization;
+using System.Security.Cryptography;
+using System.ServiceModel;
+using System.ServiceModel.Activation;
+using System.ServiceModel.Web;
+using System.Text;
+using System.Web.Script.Serialization;
+using Tweetinvi;
+using Tweetinvi.Core.Extensions;
+using Tweetinvi.Core.Interfaces.DTO;
+
+[ServiceContract(Namespace = "")]
+[AspNetCompatibilityRequirements(RequirementsMode = AspNetCompatibilityRequirementsMode.Allowed)]
+public class ws
+{
+    // Para usar HTTP GET, agregue el atributo [WebGet]. (El valor predeterminado de ResponseFormat es WebMessageFormat.Json)
+    // Para crear una operación que devuelva XML,
+    //     agregue [WebGet(ResponseFormat=WebMessageFormat.Xml)]
+    //     e incluya la siguiente línea en el cuerpo de la operación:
+    //         WebOperationContext.Current.OutgoingResponse.ContentType = "text/xml";
+    [OperationContract]
+    public void DoWork ()
+    {
+        // Agregue aquí la implementación de la operación
+        return;
+    }
+
+    [OperationContract]
+    public C_Responses damePosts (string fechaInicio, string fechaFin, string pais, int tipoRS, int pagina )
+    {
+        C_Responses retorno = new C_Responses();
+       
+        try
+        {
+
+            List<C_post> lista = new List<C_post>();
+            C_post proxy= new C_post();
+            DataTable datos;
+            retorno.resultado = "OK";
+            retorno.data = lista;
+            DateTime dFechaInicio;
+            DateTime? dFechaInicioNullable;
+            DateTime dFechaFin;
+            DateTime? dFechaFinNullable;
+            DateTime.TryParse(fechaInicio, out dFechaInicio);
+            int? tipoRSNullable = null;
+            if (tipoRS > 0)
+            {
+                tipoRSNullable = tipoRS;
+            }
+            if (dFechaInicio == DateTime.MinValue)
+            {
+                dFechaInicioNullable = null;
+            }
+            else {
+                dFechaInicioNullable = dFechaInicio;
+            }
+
+            DateTime.TryParse(fechaFin, out dFechaFin);
+            if (dFechaFin == DateTime.MinValue)
+            {
+                dFechaFinNullable = null;
+            }
+            else
+            {
+                dFechaFinNullable = dFechaFin;
+            }
+
+
+            datos = proxy.getPosts(tipoRSNullable, null, null, dFechaInicioNullable, dFechaFinNullable, pais, Convert.ToInt32(pagina), 20);
+            if (datos.Rows.Count>0)
+            {
+                foreach (DataRow fila in datos.Rows)
+                {
+                    C_post post = new C_post();
+                    post.codigoCM= fila["codigoCM"].ToString();
+                    post.codigoRS= Convert.ToInt32(fila["codigoRS"].ToString());
+                    post.codigoPost= fila["codigoPost"].ToString();
+                    post.fecha = Convert.ToDateTime(fila["fecha"]).ToShortDateString();
+                    post.texto= fila["texto"].ToString();
+                    post.multimedia= fila["multimedia"].ToString();
+                    post.urlDirecta= fila["urlDirecta"].ToString();
+                    post.relevancia= Convert.ToInt32(fila["relevancia"]).ToString("##,#");
+                    post.sharer = Convert.ToInt32(fila["sharer"]).ToString("##,#");
+                    post.likes = Convert.ToInt32(fila["likes"]).ToString("##,#");
+                    post.comentarios = Convert.ToInt32(fila["comentarios"]).ToString("##,#");
+                    post.amigosCM= Convert.ToInt32(fila["amigosCM"].ToString());
+                    post.ultimaActualizacion= fila["ultimaActualizacion"].ToString();
+                    post.localizacion= fila["localizacion"].ToString();
+                    post.tipoPost= fila["tipoPost"].ToString().Trim();
+                    post.nombreCM= fila["nombreCM"].ToString();
+                    post.nicknameCM= fila["nicknameCM"].ToString().Trim();
+                    if (post.amigosCM == 0)
+                    {
+                        post.eficaciaRelevancia = "-";
+                    }
+                    else
+                    {
+                        post.eficaciaRelevancia = (Convert.ToInt32(fila["relevancia"]) * 100 / post.amigosCM).ToString();
+                    }
+                    
+                    lista.Add(post);
+
+
+                }
+                retorno.resultado="OK";
+                retorno.data=lista;
+            }
+        }
+        catch (Exception ex)
+        {
+            retorno.resultado = "KO";
+            error objError = new error();
+            objError.codigo="-100";
+            objError.mensaje="Error de conexión. Cód Error:" + ex.Message;
+            retorno.data=objError;
+        }
+
+        return retorno;
+    }
+    [OperationContract]
+    public C_Responses getTwiterToken(String username, String lastTwitt)
+    {
+        /*
+         'oauth_access_token' => '735288805-kNnV9ywMKGpZ7wAnKi7sOrmdIkmo0sy1spqGk5BK',
+	      'oauth_access_token_secret' => '9wieAaKKsPKavZZG3h53HC8i2A20kpl0noknKzQsq41wh',
+	      'consumer_key' => '4V6BON6j4nzp5D1wvVf8NYeBv',
+	        'consumer_secret' => 'Douy2Yon01wwclLSvfA0r06CBJlSlcmQWNUPKYW7lsSlXLEW8s',*/
+        C_Responses retorno = new C_Responses();
+        retorno.resultado = "OK";
+        try {
+            var oAuthConsumerKey = "4V6BON6j4nzp5D1wvVf8NYeBv";
+            var oAuthConsumerSecret = "Douy2Yon01wwclLSvfA0r06CBJlSlcmQWNUPKYW7lsSlXLEW8s";
+            var oAuthUrl = "https://api.twitter.com/oauth2/token";
+            var screenname = username;
+
+            // Do the Authenticate
+            var authHeaderFormat = "Basic {0}";
+
+            var authHeader = string.Format(authHeaderFormat,
+                Convert.ToBase64String(Encoding.UTF8.GetBytes(Uri.EscapeDataString(oAuthConsumerKey) + ":" +
+                Uri.EscapeDataString((oAuthConsumerSecret)))
+            ));
+
+            var postBody = "grant_type=client_credentials";
+
+            HttpWebRequest authRequest = (HttpWebRequest)WebRequest.Create(oAuthUrl);
+            authRequest.Headers.Add("Authorization", authHeader);
+            authRequest.Method = "POST";
+            authRequest.ContentType = "application/x-www-form-urlencoded;charset=UTF-8";
+            authRequest.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+
+            using (System.IO.Stream stream = authRequest.GetRequestStream())
+            {
+                byte[] content = ASCIIEncoding.ASCII.GetBytes(postBody);
+                stream.Write(content, 0, content.Length);
+            }
+
+            authRequest.Headers.Add("Accept-Encoding", "gzip");
+
+            WebResponse authResponse = authRequest.GetResponse();
+            // deserialize into an object
+            TwitAuthenticateResponse twitAuthResponse;
+            using (authResponse)
+            {
+                using (var reader = new StreamReader(authResponse.GetResponseStream()))
+                {
+                    JavaScriptSerializer js = new JavaScriptSerializer();
+                    var objectText = reader.ReadToEnd();
+                    twitAuthResponse = JsonConvert.DeserializeObject<TwitAuthenticateResponse>(objectText);
+                }
+            }
+            var timelineFormat="";
+            // Do the timeline
+            int n;
+            bool isNumeric = int.TryParse(username, out n);
+            if (isNumeric == true)
+            {
+                if (lastTwitt.Equals("0"))
+                {
+                    timelineFormat = "https://api.twitter.com/1.1/statuses/user_timeline.json?user_id={0}&include_rts=1&exclude_replies=1&count=100";
+                }
+                else
+                {
+                    timelineFormat = "https://api.twitter.com/1.1/statuses/user_timeline.json?user_id={0}&include_rts=1&exclude_replies=1&count=100&max_id=" + lastTwitt;
+                }
+            }
+            else
+            {
+                if (lastTwitt.Equals("0"))
+                {
+                    timelineFormat = "https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name={0}&include_rts=1&exclude_replies=1&count=100";
+                }
+                else
+                {
+                    timelineFormat = "https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name={0}&include_rts=1&exclude_replies=1&count=100&max_id=" + lastTwitt;
+                }
+            }
+            
+            //676531811221168100
+            
+            var timelineUrl = string.Format(timelineFormat, screenname);
+            HttpWebRequest timeLineRequest = (HttpWebRequest)WebRequest.Create(timelineUrl);
+            var timelineHeaderFormat = "{0} {1}";
+            timeLineRequest.Headers.Add("Authorization", string.Format(timelineHeaderFormat, twitAuthResponse.token_type, twitAuthResponse.access_token));
+            timeLineRequest.Method = "Get";
+            WebResponse timeLineResponse = timeLineRequest.GetResponse();
+            var timeLineJson = string.Empty;
+            using (timeLineResponse)
+            {
+                using (var reader = new StreamReader(timeLineResponse.GetResponseStream()))
+                {
+                    timeLineJson = reader.ReadToEnd();
+                }
+            }
+            retorno.data = timeLineJson;
+
+
+
+
+    //// oauth application keys
+    //    var oauth_token = "735288805-kNnV9ywMKGpZ7wAnKi7sOrmdIkmo0sy1spqGk5BK";
+    //    var oauth_token_secret = "9wieAaKKsPKavZZG3h53HC8i2A20kpl0noknKzQsq41wh";
+    //    var oauth_consumer_key = "4V6BON6j4nzp5D1wvVf8NYeBv";
+    //    var oauth_consumer_secret = "Douy2Yon01wwclLSvfA0r06CBJlSlcmQWNUPKYW7lsSlXLEW8s";
+
+    //    // oauth implementation details
+    //    var oauth_version = "1.0";
+    //    var oauth_signature_method = "HMAC-SHA1";
+
+    //    // unique request details
+    //    var oauth_nonce = Convert.ToBase64String(
+    //        new ASCIIEncoding().GetBytes(DateTime.Now.Ticks.ToString()));
+    //    var timeSpan = DateTime.UtcNow
+    //        - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+    //    var oauth_timestamp = Convert.ToInt64(timeSpan.TotalSeconds).ToString();
+
+    //    // message api details
+    //    var status = "Updating status via REST API if this works";
+    //    var resource_url = "https://api.twitter.com/1.1/statuses/user_timeline.json";
+    //    var screen_name = username;
+    //     var postCount = "100";
+    //var postLastPost = lastTwitt;
+    //// create oauth signature
+    //var baseFormat = "oauth_consumer_key={0}&oauth_nonce={1}&oauth_signature_method={2}" +
+    //                    "&oauth_timestamp={3}&oauth_token={4}&oauth_version={5}&screen_name={6}";
+
+    //var baseString = string.Format(baseFormat,
+    //                            oauth_consumer_key,
+    //                            oauth_nonce,
+    //                            oauth_signature_method,
+    //                            oauth_timestamp,
+    //                            oauth_token,
+    //                            oauth_version,
+    //                             Uri.EscapeDataString(screen_name)
+
+
+    //                                );
+
+    //    baseString = string.Concat("GET&", Uri.EscapeDataString(resource_url), "&", Uri.EscapeDataString(baseString));
+
+    //    var compositeKey = string.Concat(Uri.EscapeDataString(oauth_consumer_secret),
+    //                            "&", Uri.EscapeDataString(oauth_token_secret));
+
+    //    string oauth_signature;
+    //    using (HMACSHA1 hasher = new HMACSHA1(ASCIIEncoding.ASCII.GetBytes(compositeKey)))
+    //    {
+    //        oauth_signature = Convert.ToBase64String(
+    //            hasher.ComputeHash(ASCIIEncoding.ASCII.GetBytes(baseString)));
+    //    }
+
+    //    // create the request header
+    //    var headerFormat = "OAuth oauth_nonce=\"{0}\", oauth_signature_method=\"{1}\", " +
+    //                       "oauth_timestamp=\"{2}\", oauth_consumer_key=\"{3}\", " +
+    //                       "oauth_token=\"{4}\", oauth_signature=\"{5}\", " +
+    //                       "oauth_version=\"{6}\"";
+
+    //    var authHeader = string.Format(headerFormat,
+    //                            Uri.EscapeDataString(oauth_nonce),
+    //                            Uri.EscapeDataString(oauth_signature_method),
+    //                            Uri.EscapeDataString(oauth_timestamp),
+    //                            Uri.EscapeDataString(oauth_consumer_key),
+    //                            Uri.EscapeDataString(oauth_token),
+    //                            Uri.EscapeDataString(oauth_signature),
+    //                            Uri.EscapeDataString(oauth_version)
+    //                    );
+
+
+    //    // make the request
+
+    //    ServicePointManager.Expect100Continue = false;
+
+    //    var postBody = "screen_name=" + Uri.EscapeDataString(screen_name);//
+
+
+    //resource_url += "?" + postBody;
+    //    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(resource_url);
+    //    request.Headers.Add("Authorization", authHeader);
+    //    request.Method = "GET";
+    //    request.ContentType = "application/x-www-form-urlencoded";
+
+
+    //    WebResponse response = request.GetResponse();
+    //    string responseData = new StreamReader(response.GetResponseStream()).ReadToEnd();
+    //    retorno.data = responseData;
+}
+
+        catch (Exception ex)
+        {
+            retorno.resultado = "KO";
+            error objError = new error();
+            objError.codigo = "-100";
+            objError.mensaje = "Error de conexión. Cód Error:" + ex.Message;
+            retorno.data = objError;
+        }
+        return retorno;
+
+    }
+
+    public class TwitAuthenticateResponse
+    {
+        public string token_type { get; set; }
+        public string access_token { get; set; }
+    }
+    private string EncodeCharacters(string v)
+    {
+        throw new NotImplementedException();
+    }
+
+    //C_comunityManager proxy = new C_comunityManager();
+    //string datos = proxy.dameTarea(tipoRS);
+
+    /*if (datos.Trim() != "")
+    {
+        string[] commandArgs = datos.Split(new string[] { "###" }, StringSplitOptions.None);
+        string codigoCM = commandArgs[0];
+        string ultimoPost = commandArgs[1];
+
+        retorno.resultado = "OK";
+        C_Tarea tarea = new C_Tarea();
+        tarea.codigoCM = codigoCM;
+        tarea.ultimoPostId = ultimoPost.ToString();
+        retorno.data = tarea;
+    }
+
+    else //Si no hay nigun CM sin asignar en la red social solicitada
+    {
+        error objError = new error();
+        objError.codigo = "-1";
+        objError.mensaje = "All tasks are asigned.";
+        retorno.data = objError;
+
+    }*/
+
+
+
+    /*
+    public TwitterConnection(){
+        Auth.SetUserCredentials("4V6BON6j4nzp5D1wvVf8NYeBv", "Douy2Yon01wwclLSvfA0r06CBJlSlcmQWNUPKYW7lsSlXLEW8s", "735288805-kNnV9ywMKGpZ7wAnKi7sOrmdIkmo0sy1spqGk5BK", "9wieAaKKsPKavZZG3h53HC8i2A20kpl0noknKzQsq41wh");
+
+        TweetinviEvents.QueryBeforeExecute += (sender, args) =>
+        {
+            Console.WriteLine(args.QueryURL);
+        };
+
+        var authenticatedUser = User.GetAuthenticatedUser();
+        ManualQuery_Example();
+}
+    public static void ManualQuery_Example()
+    {
+        const string getHomeTimelineQuery = "https://api.twitter.com/1.1/statuses/home_timeline.json";
+
+        // Execute Query can either return a json or a DTO interface
+        var tweetsDTO = TwitterAccessor.ExecuteGETQuery<IEnumerable<ITweetDTO>>(getHomeTimelineQuery);
+        tweetsDTO.ForEach(tweetDTO => Console.WriteLine(tweetDTO.Text));
+        //return tweetsDTO;
+    }*/
+    //[OperationContract]
+    //public C_Responses damePosts_v2(string fechaInicio, string fechaFin, string pais, int fb,int tw,int instagram, int yt, int pagina)
+    //{
+    //    C_Responses retorno = new C_Responses();
+
+    //    try
+    //    {
+    //        DataTable tbPaises = new DataTable();
+    //        DataColumn column2 = new DataColumn("entero");
+    //        column2.DataType = typeof(String);
+    //        column2.AllowDBNull = true;
+    //        tbPaises.Columns.Add(column2);
+    //        DataRow filaAux;
+
+
+    //        if (pais.Trim()!="") {
+    //            string[] paises = pais.Split('#');
+    //            foreach (string p in paises) {
+    //                if (p.Trim()!="")
+    //                {
+    //                    filaAux = tbPaises.NewRow();
+    //                    filaAux["entero"] = Convert.ToInt32(p);
+    //                    tbPaises.Rows.Add(filaAux);
+    //                }
+    //            }
+
+
+    //        }
+
+
+    //        List<C_post> lista = new List<C_post>();
+    //        C_post proxy = new C_post();
+    //        DataTable datos;
+    //        retorno.resultado = "OK";
+    //        retorno.data = lista;
+    //        DateTime dFechaInicio;
+    //        DateTime? dFechaInicioNullable;
+    //        DateTime dFechaFin;
+    //        DateTime? dFechaFinNullable;
+    //        DateTime.TryParse(fechaInicio, out dFechaInicio);
+
+    //        if (dFechaInicio == DateTime.MinValue)
+    //        {
+    //            dFechaInicioNullable = null;
+    //        }
+    //        else
+    //        {
+    //            dFechaInicioNullable = dFechaInicio;
+    //        }
+
+    //        DateTime.TryParse(fechaFin, out dFechaFin);
+    //        if (dFechaFin == DateTime.MinValue)
+    //        {
+    //            dFechaFinNullable = null;
+    //        }
+    //        else
+    //        {
+    //            dFechaFinNullable = dFechaFin;
+    //        }
+
+
+    //        datos = proxy.getPosts_v2(fb, tw, instagram, yt, dFechaInicioNullable, dFechaFinNullable, tbPaises, Convert.ToInt32(pagina), 20);
+    //        if (datos.Rows.Count > 0)
+    //        {
+    //            foreach (DataRow fila in datos.Rows)
+    //            {
+    //                C_post post = new C_post();
+    //                post.codigoCM = fila["codigoCM"].ToString();
+    //                post.codigoRS = Convert.ToInt32(fila["codigoRS"].ToString());
+    //                post.codigoPost = fila["codigoPost"].ToString();
+    //                post.fecha = Convert.ToDateTime(fila["fecha"]).ToShortDateString();
+    //                post.texto = fila["texto"].ToString();
+    //                post.multimedia = fila["multimedia"].ToString();
+    //                post.urlDirecta = fila["urlDirecta"].ToString();
+    //                post.relevancia = Convert.ToInt32(fila["relevancia"]).ToString("##,#");
+    //                post.sharer = Convert.ToInt32(fila["sharer"]).ToString("##,#");
+    //                post.likes = Convert.ToInt32(fila["likes"]).ToString("##,#");
+    //                post.comentarios = Convert.ToInt32(fila["comentarios"]).ToString("##,#");
+    //                post.ultimaActualizacion = fila["ultimaActualizacion"].ToString();
+    //                post.localizacion = fila["localizacion"].ToString();
+    //                post.tipoPost = fila["tipoPost"].ToString().Trim();
+    //                post.nombreCM = fila["nombreCM"].ToString();
+    //                post.nicknameCM = fila["localizacion"].ToString().Trim();
+    //                post.amigosCM =Convert.ToInt32(fila["amigosCM"]);
+    //                if (post.amigosCM == 0)
+    //                {
+    //                    post.eficaciaRelevancia = "-";
+    //                }
+    //                else {
+    //                    post.eficaciaRelevancia = (Convert.ToInt32(fila["relevancia"]) * 100 / post.amigosCM).ToString();
+    //                }
+
+    //                lista.Add(post);
+
+
+    //            }
+    //            retorno.resultado = "OK";
+    //            retorno.data = lista;
+    //        }
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        retorno.resultado = "KO";
+    //        error objError = new error();
+    //        objError.codigo = "-100";
+    //        objError.mensaje = "Error de conexión. Cód Error:" + ex.Message;
+    //        retorno.data = objError;
+    //    }
+
+    //    return retorno;
+    //}
+
+    [OperationContract]
+    public C_Responses damePosts_v2 ( string fechaInicio, string fechaFin, string pais, int fb, int tw, int instagram, int yt, int criterioOrden, bool ascendente, bool favorito, int pagina )
+    {
+        C_Responses retorno = new C_Responses();
+
+        try
+        {
+            DataTable tbPaises = new DataTable();
+            DataColumn column2 = new DataColumn("entero");
+            column2.DataType = typeof(String);
+            column2.AllowDBNull = true;
+            tbPaises.Columns.Add(column2);
+            DataRow filaAux;
+
+
+            if (pais.Trim()!="")
+            {
+                string[] paises = pais.Split('#');
+                foreach (string p in paises)
+                {
+                    if (p.Trim()!="")
+                    {
+                        filaAux = tbPaises.NewRow();
+                        filaAux["entero"] = Convert.ToInt32(p);
+                        tbPaises.Rows.Add(filaAux);
+                    }
+                }
+
+
+            }
+
+
+            List<C_post> lista = new List<C_post>();
+            C_post proxy = new C_post();
+            DataTable datos;
+            retorno.resultado = "OK";
+            retorno.data = lista;
+            DateTime dFechaInicio;
+            DateTime? dFechaInicioNullable;
+            DateTime dFechaFin;
+            DateTime? dFechaFinNullable;
+            DateTime.TryParse(fechaInicio, out dFechaInicio);
+
+            if (dFechaInicio == DateTime.MinValue)
+            {
+                dFechaInicioNullable = null;
+            }
+            else
+            {
+                dFechaInicioNullable = dFechaInicio;
+            }
+
+            DateTime.TryParse(fechaFin, out dFechaFin);
+            if (dFechaFin == DateTime.MinValue)
+            {
+                dFechaFinNullable = null;
+            }
+            else
+            {
+                dFechaFinNullable = dFechaFin;
+            }
+
+
+            datos = proxy.getPosts_v2(fb, tw, instagram, yt, dFechaInicioNullable, dFechaFinNullable, tbPaises, criterioOrden, ascendente,favorito, Convert.ToInt32(pagina), 20);
+            if (datos.Rows.Count > 0)
+            {
+                foreach (DataRow fila in datos.Rows)
+                {
+                    C_post post = new C_post();
+                    post.codigoCM = fila["codigoCM"].ToString();
+                    post.codigoRS = Convert.ToInt32(fila["codigoRS"].ToString());
+                    post.codigoPost = fila["codigoPost"].ToString();
+                    post.fecha = Convert.ToDateTime(fila["fecha"]).ToString("dd/MM/yyyy HH:mm:ss");
+                    post.texto = fila["texto"].ToString();
+                    post.multimedia = fila["multimedia"].ToString();
+                    post.urlDirecta = fila["urlDirecta"].ToString();
+                    post.relevancia = Convert.ToInt32(fila["relevancia"]).ToString("##,#");
+                    post.sharer = Convert.ToInt32(fila["sharer"]).ToString("##,#");
+                    post.likes = Convert.ToInt32(fila["likes"]).ToString("##,#");
+                    post.comentarios = Convert.ToInt32(fila["comentarios"]).ToString("##,#");
+                    post.ultimaActualizacion = fila["ultimaActualizacion"].ToString();
+                    post.localizacion = fila["localizacion"].ToString();
+                    post.tipoPost = fila["tipoPost"].ToString().Trim();
+                    post.nombreCM = fila["nombreCM"].ToString();
+                    post.nicknameCM = fila["localizacion"].ToString().Trim();
+                    post.amigosCM =Convert.ToInt32(fila["amigosCM"]);
+                    post.eficaciaRelevancia =fila["eficaciaRelevancia"].ToString();
+                    //if (post.amigosCM == 0)
+                    //{
+                    //    post.eficaciaRelevancia = "-";
+                    //}
+                    //else
+                    //{
+                    //    post.eficaciaRelevancia = (Convert.ToInt32(fila["relevancia"]) * 100 / post.amigosCM).ToString();
+                    //}
+                    //Si pregunta por todos los posts
+                    if (favorito==false)
+                    {
+                        if (Convert.ToInt32(fila["favorito"])>0)
+                        {
+                            post.favorito =true;
+                        }
+                        else {
+                            post.favorito =false;
+                        }
+                    }//Si pregunta solo por los favoritos
+                    else
+                    {
+                        post.favorito =true;
+                    }
+
+                    lista.Add(post);
+
+
+                }
+                retorno.resultado = "OK";
+                retorno.data = lista;
+            }
+        }
+        catch (Exception ex)
+        {
+            retorno.resultado = "KO";
+            error objError = new error();
+            objError.codigo = "-100";
+            objError.mensaje = "Error de conexión. Cód Error:" + ex.Message;
+            retorno.data = objError;
+        }
+
+        return retorno;
+    }
+
+
+
+
+    [OperationContract]
+    //  [WebInvoke(Method = "POST", RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json)]
+    public C_Responses guardarActividad ( string post )
+    {
+     
+        C_Responses retorno = new C_Responses();
+        retorno.resultado="KO";
+        int filasAfectadas=0;
+        bool errorGuardar=false;
+        try
+        {
+
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            objPosts view = serializer.Deserialize<objPosts>(post);
+
+            if (view.posts.Count>0)
+            {
+                DataTable listaObjetos = new DataTable();
+                listaObjetos.Columns.Add("codigoRS", typeof(int));
+                listaObjetos.Columns.Add("codigoPost", typeof(string));
+                listaObjetos.Columns.Add("codigoCM", typeof(string));
+                listaObjetos.Columns.Add("fecha", typeof(DateTime));
+                listaObjetos.Columns.Add("texto", typeof(string));
+                listaObjetos.Columns.Add("multimedia", typeof(string));
+                listaObjetos.Columns.Add("urlDirecta", typeof(string));
+                listaObjetos.Columns.Add("relevancia", typeof(int));
+                listaObjetos.Columns.Add("sharer", typeof(int));
+                listaObjetos.Columns.Add("likes", typeof(int));
+                listaObjetos.Columns.Add("comentarios", typeof(int));
+                listaObjetos.Columns.Add("amigosCM", typeof(int));
+                listaObjetos.Columns.Add("tipoPost", typeof(string));
+                listaObjetos.Columns.Add("nextPageToken", typeof(string));
+                listaObjetos.Columns.Add("eficaciRelevancia", typeof(string));
+                
+                C_post proxy = new C_post();
+                foreach (posts postGuardar in view.posts)
+                {
+                    DataRow DR = listaObjetos.NewRow();
+
+                    DR["codigoRS"] = view.tipoRS;
+                    DR["codigoPost"] = postGuardar.codigoPost;
+                    DR["codigoCM"] = view.codigoCM;
+                    DR["fecha"] = Convert.ToDateTime(postGuardar.fecha);
+                    DR["texto"] = postGuardar.texto;
+                    DR["multimedia"] =postGuardar.multimedia;
+                    DR["urlDirecta"] =  postGuardar.postUrl;
+                    DR["relevancia"] = postGuardar.numSharer+postGuardar.numLikes+postGuardar.numComentarios;
+                    DR["sharer"] = postGuardar.numSharer;
+                    DR["likes"] = postGuardar.numLikes;
+                    DR["comentarios"] = postGuardar.numComentarios;
+                    DR["amigosCM"] = postGuardar.numAmigosCM;
+                    DR["tipoPost"] = postGuardar.tipoPost;
+                    DR["nextPageToken"] = postGuardar.nextPageToken;
+
+                    DR["eficaciRelevancia"] = postGuardar.nextPageToken;
+
+
+                    if (postGuardar.numAmigosCM == 0)
+                    {
+                        DR["eficaciRelevancia"] = 0;
+                    }
+                    else
+                    {
+                        DR["eficaciRelevancia"] =(Convert.ToInt32(postGuardar.numSharer+postGuardar.numLikes+postGuardar.numComentarios) * 100 / postGuardar.numAmigosCM).ToString();
+                    }
+
+
+                    listaObjetos.Rows.Add(DR);
+
+                   
+
+                }
+                filasAfectadas=proxy.guardarPost(listaObjetos);
+                if (filasAfectadas<1)
+                {
+                    errorGuardar=true;
+
+                }
+
+                if (errorGuardar==true)
+                {
+                    error objError = new error();
+                    objError.codigo="-1";
+                    objError.mensaje="Ha ocurrido un error a la hora de guardar alguno de los post.";
+                    retorno.data=objError;
+
+                }
+                else
+                {
+                    retorno.resultado="OK";
+                }
+
+            }//No se ha deserializado ningun objeto
+            else
+            {
+
+                error objError = new error();
+                objError.codigo="-1";
+                objError.mensaje="No ha llegado ningún objeto.";
+                retorno.data=objError;
+            }
+
+
+
+        }
+        catch (Exception ex)
+        {
+            error objError = new error();
+            objError.codigo="-100";
+            objError.mensaje="Error de conexión. Cód Error:" + ex.Message;
+            retorno.data=objError;
+
+        }
+
+        return retorno;
+    }
+
+
+    [OperationContract]
+    public C_Responses dameTarea ( int tipoRS )
+    {
+        C_Responses retorno = new C_Responses();
+        retorno.resultado="KO";
+        try
+        {
+
+            C_comunityManager proxy= new C_comunityManager();
+            string datos = proxy.dameTarea(tipoRS);
+
+            if (datos.Trim() !="")
+            {
+                string[] commandArgs = datos.Split(new string[] { "###" }, StringSplitOptions.None);
+                string codigoCM = commandArgs[0];
+                string ultimoPost = commandArgs[1];
+
+                retorno.resultado="OK";
+                C_Tarea tarea = new C_Tarea();
+                tarea.codigoCM= codigoCM;
+                tarea.ultimoPostId=ultimoPost.ToString();
+                retorno.data=tarea;
+            }
+            else //Si no hay nigun CM sin asignar en la red social solicitada
+            {
+                error objError = new error();
+                objError.codigo="-1";
+                objError.mensaje="All tasks are asigned.";
+                retorno.data=objError;
+
+            }
+        }
+        catch (Exception ex)
+        {
+            //string codigoError = C_FuncionesGenerales.registroErrores("ws.asmx -> damePosts -> " + ex.Message).ToString();
+            //     throw new Exception("Error de conexión. Cód Error:" + ex.Message);
+            error objError = new error();
+            objError.codigo="-100";
+            objError.mensaje="Error de conexión. Cód Error:" + ex.Message;
+            retorno.data=objError;
+        }
+
+        return retorno;
+    }
+
+    [OperationContract]
+    public C_Responses cerrarTarea ( int tipoRS, string codigoCM, int motivoCierre )
+    {
+        C_Responses retorno = new C_Responses();
+        retorno.resultado="KO";
+        try
+        {
+                                                                    
+            C_comunityManager proxy= new C_comunityManager();
+            int datos = proxy.cerrarTarea(tipoRS,codigoCM,motivoCierre);
+
+            if (datos>0)
+            {
+                
+                retorno.resultado="OK";
+              
+            }
+            else //Si no ha cerrado la tarea
+            {
+                error objError = new error();
+                objError.codigo="-1";
+                objError.mensaje="No ha podido ser cerrada la tarea.";
+                retorno.data=objError;
+
+            }
+        }
+        catch (Exception ex)
+        {
+            //string codigoError = C_FuncionesGenerales.registroErrores("ws.asmx -> damePosts -> " + ex.Message).ToString();
+            // throw new Exception("Error de conexión. Cód Error:" + ex.Message);
+            error objError = new error();
+            objError.codigo="-100";
+            objError.mensaje="Error de conexión. Cód Error:" + ex.Message;
+            retorno.data=objError;
+        }
+
+        return retorno;
+    }
+
+    [OperationContract]
+    public C_Responses getListPaisesByAgrupacion ( string searchString, string agrupacion )
+    {
+        C_Responses retorno = new C_Responses();
+        var lstData = new List<AutoCompleteResult>();
+        retorno.resultado="KO";
+        try
+        {
+
+            C_FuncionesGenerales proxy = new C_FuncionesGenerales();
+            DataTable datos=proxy.getListPaisesByAgrupacion(searchString, Convert.ToInt32(agrupacion));
+            if (datos.Rows.Count>0)
+            {
+                foreach (DataRow row in datos.Rows)
+                {
+                    //lstData.Add(new AutoCompleteResult { code = C_FuncionesGenerales.EncriptarCodigos(row["codigo"].ToString()), value = row["nombre"].ToString() });
+                    lstData.Add(new AutoCompleteResult { code = row["codigo"].ToString(), value = row["nombre"].ToString() });
+                }
+                retorno.resultado="OK";
+                retorno.data=lstData;
+            }
+          
+        }
+        catch (Exception ex)
+        {
+            //string codigoError = C_FuncionesGenerales.registroErrores("ws.asmx -> damePosts -> " + ex.Message).ToString();
+            //     throw new Exception("Error de conexión. Cód Error:" + ex.Message);
+            error objError = new error();
+            objError.codigo="-100";
+            objError.mensaje="Error de conexión. Cód Error:" + ex.Message;
+            retorno.data=objError;
+        }
+
+        return retorno;
+    }
+
+
+    [OperationContract]
+    public C_Responses guardarFavorito ( string codigoPost,int codigoRS,string codigoCM,bool favorito)
+    {
+        C_Responses retorno = new C_Responses();
+        retorno.resultado="KO";
+        try
+        {
+
+            C_post proxy= new C_post();
+            int datos = proxy.guardarFavorito(codigoPost,codigoRS,codigoCM,favorito);
+
+            if (datos>0)
+            {
+             retorno.resultado="OK";
+            }
+            else //Si no hay nigun CM sin asignar en la red social solicitada
+            {
+                error objError = new error();
+                objError.codigo="-1";
+                objError.mensaje="No se han podido guardar los cambios";
+                retorno.data=objError;
+
+            }
+        }
+        catch (Exception ex)
+        {
+            //string codigoError = C_FuncionesGenerales.registroErrores("ws.asmx -> damePosts -> " + ex.Message).ToString();
+            //     throw new Exception("Error de conexión. Cód Error:" + ex.Message);
+            error objError = new error();
+            objError.codigo="-100";
+            objError.mensaje="Error de conexión. Cód Error:" + ex.Message;
+            retorno.data=objError;
+        }
+
+        return retorno;
+    }
+
+
+    //[OperationContract]
+    //public C_Responses getFavoritos ( string fechaInicio, string fechaFin, string pais, int fb, int tw, int instagram, int yt, int pagina )
+    //{
+    //    C_Responses retorno = new C_Responses();
+
+    //    try
+    //    {
+    //        DataTable tbPaises = new DataTable();
+    //        DataColumn column2 = new DataColumn("entero");
+    //        column2.DataType = typeof(String);
+    //        column2.AllowDBNull = true;
+    //        tbPaises.Columns.Add(column2);
+    //        DataRow filaAux;
+
+
+    //        if (pais.Trim()!="")
+    //        {
+    //            string[] paises = pais.Split('#');
+    //            foreach (string p in paises)
+    //            {
+    //                if (p.Trim()!="")
+    //                {
+    //                    filaAux = tbPaises.NewRow();
+    //                    filaAux["entero"] = Convert.ToInt32(p);
+    //                    tbPaises.Rows.Add(filaAux);
+    //                }
+    //            }
+
+
+    //        }
+
+
+    //        List<C_post> lista = new List<C_post>();
+    //        C_post proxy = new C_post();
+    //        DataTable datos;
+    //        retorno.resultado = "OK";
+    //        retorno.data = lista;
+    //        DateTime dFechaInicio;
+    //        DateTime? dFechaInicioNullable;
+    //        DateTime dFechaFin;
+    //        DateTime? dFechaFinNullable;
+    //        DateTime.TryParse(fechaInicio, out dFechaInicio);
+
+    //        if (dFechaInicio == DateTime.MinValue)
+    //        {
+    //            dFechaInicioNullable = null;
+    //        }
+    //        else
+    //        {
+    //            dFechaInicioNullable = dFechaInicio;
+    //        }
+
+    //        DateTime.TryParse(fechaFin, out dFechaFin);
+    //        if (dFechaFin == DateTime.MinValue)
+    //        {
+    //            dFechaFinNullable = null;
+    //        }
+    //        else
+    //        {
+    //            dFechaFinNullable = dFechaFin;
+    //        }
+
+
+    //        datos = proxy.getPosts_v2(fb, tw, instagram, yt, dFechaInicioNullable, dFechaFinNullable, tbPaises, Convert.ToInt32(pagina), 20);
+    //        if (datos.Rows.Count > 0)
+    //        {
+    //            foreach (DataRow fila in datos.Rows)
+    //            {
+    //                C_post post = new C_post();
+    //                post.codigoCM = fila["codigoCM"].ToString();
+    //                post.codigoRS = Convert.ToInt32(fila["codigoRS"].ToString());
+    //                post.codigoPost = fila["codigoPost"].ToString();
+    //                post.fecha = Convert.ToDateTime(fila["fecha"]).ToShortDateString();
+    //                post.texto = fila["texto"].ToString();
+    //                post.multimedia = fila["multimedia"].ToString();
+    //                post.urlDirecta = fila["urlDirecta"].ToString();
+    //                post.relevancia = Convert.ToInt32(fila["relevancia"]).ToString("##,#");
+    //                post.sharer = Convert.ToInt32(fila["sharer"]).ToString("##,#");
+    //                post.likes = Convert.ToInt32(fila["likes"]).ToString("##,#");
+    //                post.comentarios = Convert.ToInt32(fila["comentarios"]).ToString("##,#");
+    //                post.ultimaActualizacion = fila["ultimaActualizacion"].ToString();
+    //                post.localizacion = fila["localizacion"].ToString();
+    //                post.tipoPost = fila["tipoPost"].ToString().Trim();
+    //                post.nombreCM = fila["nombreCM"].ToString();
+    //                post.nicknameCM = fila["localizacion"].ToString().Trim();
+    //                post.amigosCM =Convert.ToInt32(fila["amigosCM"]);
+    //                if (post.amigosCM == 0)
+    //                {
+    //                    post.eficaciaRelevancia = "-";
+    //                }
+    //                else
+    //                {
+    //                    post.eficaciaRelevancia = (Convert.ToInt32(fila["relevancia"]) * 100 / post.amigosCM).ToString();
+    //                }
+
+    //                lista.Add(post);
+
+
+    //            }
+    //            retorno.resultado = "OK";
+    //            retorno.data = lista;
+    //        }
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        retorno.resultado = "KO";
+    //        error objError = new error();
+    //        objError.codigo = "-100";
+    //        objError.mensaje = "Error de conexión. Cód Error:" + ex.Message;
+    //        retorno.data = objError;
+    //    }
+
+    //    return retorno;
+    //}
+
+}

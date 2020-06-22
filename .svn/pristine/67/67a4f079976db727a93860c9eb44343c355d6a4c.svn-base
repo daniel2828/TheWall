@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  Para obtener más información sobre cómo configurar la aplicación de ASP.NET, visite
+  http://go.microsoft.com/fwlink/?LinkId=169433
+  -->
+
+<configuration>
+
+    <system.web>
+      <compilation debug="true" targetFramework="4.5" />
+      <httpRuntime targetFramework="4.5" />
+      <customErrors mode="Off"></customErrors>
+      <globalization culture="es-ES" uiCulture="es-ES" />
+    </system.web>
+
+  <connectionStrings>
+    <add connectionString="Server=146.255.98.80;Database=Brand_Wall;User ID=brandWall_usr;Password=D7ijKE7/0%d09p8LS#qM" name="SqlConnection" providerName="System.Data.SqlClient" />
+
+  </connectionStrings>
+
+
+  <system.serviceModel>
+    <bindings>
+      <webHttpBinding>
+        <binding maxBufferPoolSize="2147483647" maxReceivedMessageSize="2147483647" maxBufferSize="2147483647" transferMode="Streamed">
+          <readerQuotas maxDepth="32" maxStringContentLength="5242880" maxArrayLength="16384" maxBytesPerRead="4096" maxNameTableCharCount="16384" />
+          <!--<security mode="Transport"></security>-->
+        </binding>
+      </webHttpBinding>
+    </bindings>
+    <behaviors>
+      <endpointBehaviors>
+        <behavior name="wsAspNetAjaxBehavior">
+          <enableWebScript />
+        </behavior>
+      </endpointBehaviors>
+      <serviceBehaviors>
+        <behavior name="wsAspNetAjaxBehavior">
+          <!--<behavior name="ws.Service1Behavior">-->
+          <serviceDebug includeExceptionDetailInFaults="true" />
+          <serviceMetadata httpGetEnabled="true" />
+        </behavior>
+      </serviceBehaviors>
+    </behaviors>
+    <serviceHostingEnvironment aspNetCompatibilityEnabled="true"     multipleSiteBindingsEnabled="true" />
+    <services>
+      <service name="ws">
+        <endpoint address="" behaviorConfiguration="wsAspNetAjaxBehavior"    binding="webHttpBinding" contract="ws" />
+      </service>
+    </services>
+  </system.serviceModel>
+  
+  
+</configuration>

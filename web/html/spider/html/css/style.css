@@ -1,0 +1,46 @@
+html{}
+body{font-size: 14px; max-width: 310px; min-width: 310px; font-family: sans-serif;margin: 0;position: relative;display: block;}
+.animation { -webkit-transition: all 0.3s ease-in-out; -moz-transition: all 0.3s ease-in-out; -o-transition: all 0.3s ease-in-out; transition: all 0.3s ease-in-out;}
+
+.container{background: #2b2d32;float: left;padding: 0% 0%;width: 100%;overflow: hidden;}
+.buttonContainer{background-color: #2b2d32;  margin: 0px 0px 1px; padding: 10px 8px;display: inline-block;width: 96%;float: left;}
+.buttonContainer span{ margin: 4px 0px 0px 0px; padding: 0px 5px 0px;  display: block;float: left;color: #AAAAAA;margin-left: 5%;}
+
+.header{background: #FFFFFF;float: left;width: 100%;padding: 2px 0px 2px 5px;}
+.header img{ float: left; height: 24px;}
+.header span{ color: #fff;margin-left: 10px;font-size: 15px;line-height: 24px;}
+
+button{ width: 67%; margin: 6px; text-align: center; font-weight: 700; border-radius: 3px;height: 33px; cursor: pointer;margin: 0;float: left;margin-left: 5%;}
+button span{color:#fff!important;  width: initial!important;text-align: left;}
+button img{float: left;margin-right: 7px;margin-left: 1px;height: 19px;margin-top: 3px;}
+
+.txtStatus{    background-color: #F8F8F8;border-radius: 5px; width: 64%;font-size: 13px;line-height: 16px;}
+.count{ background-color: #F8F8F8; border-radius: 5px;width: 18%;}
+.statusIcon{width: 22%; text-align: left; margin-left: 2%;display: block;background-color: #F0F0F0;height: 33px;float: left;border-radius: 16px;border: 2px solid #9298A7;box-sizing: border-box;      -moz-box-sizing: border-box;      -webkit-box-sizing: border-box;position: relative;}
+.iconconnected{ display: none;}
+.icondisconnected{ display: block;}
+.switchTrigger{background: #9298A7; width: 25px; height: 25px;border-radius: 50%;position: absolute;top: 2px;right: 1px;}
+.buttonContainer.connected .switchTrigger{ left: 1px;background-color: #fff;}
+.buttonContainer.disconnected .switchTrigger{ right: 1px;background-color: #fff;}
+.buttonContainer.alert .switchTrigger{ right: 1px;background: #FFCA00;}
+.buttonContainer.connected .statusIcon{ background: url(../images/switchBg.png) no-repeat center center #5CFAC1;border: 2px solid #fff;cursor: pointer;}
+.buttonContainer.disconnected .statusIcon{ background: url(../images/switchBg.png) no-repeat center center #FA5C5C;border-color: #FFF;cursor: pointer;}
+.buttonContainer.alert .statusIcon{ background: url(../images/alert.png) no-repeat center center #FFEE04;border-color: #FFCA00;cursor: pointer;}
+
+.btnConnectFB{background: #3575d1;color: #fff;border: none;border-bottom: 4px solid #0041A0;}
+.btnConnectFB:hover{color: #fff;border-bottom: 2px solid #0041A0;}
+.buttonContainer.connected .btnConnectFB{background: #83AAE1;color: #fff;border: none;}
+
+.btnConnectTW{background: #5cbdff;color: #fff;border: none;border-bottom: 4px solid #2B74A8;}
+.btnConnectTW:hover{color: #fff;border-bottom: 2px solid #2B74A8;}
+.buttonContainer.connected .btnConnectTW{background: #91D0FA;color: #fff;border: none;}
+
+.btnConnectIN{background: #bf8360;color: #fff;border: none;border-bottom: 4px solid #97684D;}
+.btnConnectIN:hover{color: #fff;border-bottom: 2px solid #A8662F;}
+.buttonContainer.connected .btnConnectIN{background: #E8C5A7;color: #fff;border: none;}
+
+.btnConnectYT{background: #cc181e;color: #fff;border: none;border-bottom: 4px solid #9C1217;}
+.btnConnectYT:hover{color: #fff;border-bottom: 2px solid #A8662F;}
+.buttonContainer.connected .btnConnectYT{background: #F1767A;color: #fff;border: none;}
+
+

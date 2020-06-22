@@ -1,0 +1,109 @@
+<!doctype html>
+<!--
+ This page is shown when the extension button is clicked, because the
+ "browser_action" field in manifest.json contains the "default_popup" key with
+ value "popup.html".
+-->
+<html>
+<head>
+    <title>Social Media Wall Spider</title>
+    <link href="css/style.css" rel="stylesheet">
+</head>
+
+<body>
+   <script>  window.fbAsyncInit = function () {
+      FB.init({
+          appId: '1146286228734797',
+          xfbml: true,
+          version: 'v2.5'
+      });
+  };
+
+       (function (d, s, id) {
+           var js, fjs = d.getElementsByTagName(s)[0];
+           if (d.getElementById(id)) {
+               return;
+           }
+           js = d.createElement(s);
+           js.id = id;
+           js.src = "//connect.facebook.net/en_US/sdk.js";
+           fjs.parentNode.insertBefore(js, fjs);
+       }(document, 'script', 'facebook-jssdk'));</script>
+    <div id="status"></div>
+    <img id="image-result" hidden>
+
+    <div class="container">
+        <div class="header">
+            <img src="images/coke-logo.png">
+            <span>Connect</span>
+        </div>
+        <!-- Container con los botones de Facebook -->
+        <div class="buttonContainer animation">
+            <!-- Por lo que entiendo, al hacer click en el boton, se llama a main.JS y teniendo la clase btnConnectFB ya sabes que boton se esta pulsando-->
+            <button class="btnConnectFB animation">
+                <img src="images/fbIcon.png" class="icon">
+                <span>Connect Facebook</span>
+            </button>
+            <div class="statusIcon fbStatusIcon animation">
+                <div class="switchTrigger animation"></div>
+            </div>
+            <div class="statusContainer">
+                <span class="txtStatus"></span>
+                <span class="countFB count"></span>
+            </div>
+        </div>
+        <!-- Container con los botones de Twitter -->
+        <div class="buttonContainer animation ">
+            <button class="btnConnectTW animation">
+                <img src="images/twIcon.png" class="icon">
+                <span>Connect Twitter</span>
+            </button>
+            <div class="statusIcon twStatusIcon animation">
+                <div class="switchTrigger animation"></div>
+            </div>
+            <div class="statusContainer">
+                <span class="txtStatus"></span>
+                <span class="countTW count"></span>
+            </div>
+        </div>
+        <!-- Container con los botones de Instagram -->  
+        <div class="buttonContainer animation ">
+            <button class="btnConnectIN animation">
+                <img src="images/insIcon.png" class="icon">
+                <span>Connect Instagram</span>
+            </button>
+            <div class="statusIcon  inStatusIcon animation">
+                <div class="switchTrigger animation"></div>
+            </div>
+            <div class="statusContainer">
+                <span class="txtStatus"></span>
+                <span class="countIN count"></span>
+            </div>
+        </div>
+        <!-- Container con los botones de Youtube -->
+        <div class="buttonContainer animation ">
+            <button class="btnConnectYT animation">
+                <img src="images/ytIcon.png" class="icon">
+                <span>Connect YouTube</span>
+            </button>
+            <div class="statusIcon  ytStatusIcon animation">
+                <div class="switchTrigger animation"></div>
+            </div>
+            <div class="statusContainer">
+                <span class="txtStatus"></span>
+                <span class="countYT count"></span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Declaraciones de Scripts -->
+    <script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+    <script src="js/jquery-1.11.3.min.js"></script>
+    <script src="js/client.js"></script>
+    <script src="main.js"></script>
+    <script data-main="main" src="js/require.js"></script>
+</body>
+
+</html>
+

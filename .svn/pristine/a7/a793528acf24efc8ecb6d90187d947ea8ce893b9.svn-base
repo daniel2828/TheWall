@@ -1,0 +1,1148 @@
+
+// V
+//var OAuth;
+//OAuth.initialize('XlDJtEUxuXdSEwD4Zblo9CAyPRs');
+
+
+var app = app || {};
+
+//Espacio de nombres
+app.main = {};
+app.navegacion = {};
+app.utils = {};
+app.ajax = {};
+app.visual = {};
+
+
+
+app.main = {
+    site_URL: "/ws.svc/",
+    //site_URL: "http://private-47d38-socialmediawalls.apiary-mock.com/",
+    actualRSfacebook: 1,
+    actualRStwitter: 2,
+    actualRSinstagram: 3,
+    actualRSyoutube: 4,
+    IDfacebookActualCM: null,
+    IDtwitterActualCM: null,
+    IDinstagramActualCM: null,
+    IDYoutubeActualCM: null,
+    numSegidoresFB: 0,
+    numSubscriptoresYT: 0,
+    numSuscriptIN: 0,
+    activebtnFB: false,
+    activebtnTW: false,
+    activebtnIN: false,
+    activebtnYT: false,
+    tempArrayPosts: new Array(),
+    tempArrayTwitts: new Array(),
+    tempArrayInstagram: new Array(),
+    tempArrayYoutTube: new Array(),
+    motivoFail: 0,
+    motivoExito: 1,
+    motivoAbort: 2,
+    motivoMaxPeticion: 3,
+    responseTwitter: null,
+    responseInstagram: null,
+    countFB: 0,
+    countTW: 0,
+    countIN: 0,
+    countYT: 0,
+    //YT client ID 
+    //
+
+    ytApikey: "AIzaSyCrvFQeILHPjtK4NDV1kjYb4E0mG5jRt1c",
+    //    OAUTH2_CLIENT_ID: '13942950680-23v2mardietm45ld09en42epbtu0stbn.apps.googleusercontent.com',
+    //    OAUTH2_SCOPES: ['https://www.googleapis.com/auth/youtube'],
+
+    // Funcion que se llama al cargar los Contenidos del DOM 
+    init: function () {
+
+
+        setTimeout(app.main.initYT, 1000);
+        this.programarBottones();
+        
+
+        //console.log("init");
+    },
+
+    // Programación de cada boton. Lo que hace cada boton vendrá determinado por su clase.
+
+    programarBottones: function () {
+        // app.utils.trace("programar bottones");
+        // Esto es como si llamara a la funcíon desde el html , es una función de JQuery:
+        $(".btnConnectFB").on("click", function (e) {
+            // Los usamos para evitar la propagación de la funcionalidad en el DOM y para evitar la accion por defecto del boton
+            e.preventDefault();
+            e.stopPropagation();
+            // ???¿ Parent ? 
+            var bloque = $(".btnConnectFB").parent();
+            // Si esta conectado, que lo desconecte
+            if ($(this).parent().hasClass("connected")) {
+
+                app.visual.mostrarStatusBtn(bloque, "alert", "Abort to traking the data");
+                app.main.activebtnFB = false;
+
+                app.ajax.guardarActividad(app.main.IDfacebookActualCM, app.main.actualRSfacebook, app.main.tempArrayPosts, function () {
+                    app.ajax.cerrarTarea(app.main.actualRSfacebook, app.main.IDfacebookActualCM, app.main.motivoAbort);
+                });
+            } 
+                // Si no esta conectado, que lo conecte
+            else {
+                app.main.activebtnFB = true;
+                app.visual.mostrarStatusBtn(bloque, "on", TEXTOS.T01);
+                app.main.loginFacebook();
+            }
+        });
+
+        // Esto es como si llamara a la funcíon desde el html , es una función de JQuery:
+        $(".btnConnectTW").on("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var bloque = $(".btnConnectTW").parent();
+
+            if ($(this).parent().hasClass("connected")) {
+                app.visual.mostrarStatusBtn(bloque, "alert", "Abort to traking the data");
+                app.main.activebtnTW = false;
+                app.ajax.guardarActividad(app.main.IDtwitterActualCM, app.main.actualRStwitter, app.main.tempArrayTwitts, function () {
+                    app.ajax.cerrarTarea(app.main.actualRStwitter, app.main.IDtwitterActualCM, app.main.motivoAbort);
+                });
+            } else {
+                //                console.log("activamos btn");
+                app.main.activebtnTW = true;
+                app.visual.mostrarStatusBtn(bloque, "on", TEXTOS.T01);
+                app.main.loginTwitter();
+            }
+        });
+        // Esto es como si llamara a la funcíon desde el html , es una función de JQuery:
+        $(".btnConnectIN").on("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var bloque = $(".btnConnectIN").parent();
+            if ($(this).parent().hasClass("connected")) {
+                app.visual.mostrarStatusBtn(bloque, "alert", "Abort to traking the data");
+                app.main.activebtnIN = false;
+                app.ajax.guardarActividad(app.main.IDinstagramActualCM, app.main.actualRSinstagram, app.main.tempArrayInstagram, function () {
+                    app.ajax.cerrarTarea(app.main.actualRSinstagram, app.main.IDinstagramActualCM, app.main.motivoAbort);
+
+                });
+            } else {
+                app.main.activebtnIN = true;
+                app.visual.mostrarStatusBtn(bloque, "on", TEXTOS.T01);
+                app.main.loginInstagram();
+            }
+        });
+
+        // Esto es como si llamara a la funcíon desde el html , es una función de JQuery:
+        $(".btnConnectYT").on("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var bloque = $(".btnConnectYT").parent();
+            if ($(this).parent().hasClass("connected")) {
+                app.visual.mostrarStatusBtn(bloque, "alert", "Abort to traking the data");
+                app.main.activebtnYT = false;
+                app.ajax.guardarActividad(app.main.IDYoutubeActualCM, app.main.actualRSyoutube, app.main.tempArrayYoutTube, function () {
+                    app.ajax.cerrarTarea(app.main.actualRSinstagram, app.main.IDYoutubeActualCM, app.main.motivoAbort);
+
+                });
+            } else {
+                app.main.activebtnYT = true;
+                app.visual.mostrarStatusBtn(bloque, "on", TEXTOS.T01);
+                app.visual.pedirTareasRS(app.main.actualRSyoutube);
+            }
+        });
+
+        // Esto es como si llamara a la funcíon desde el html , es una función de JQuery:
+        //################ Todas #############
+
+        $(".fbStatusIcon").on("click", function () {
+            $(".btnConnectFB").trigger("click");
+        });
+        $(".twStatusIcon").on("click", function () {
+            $(".btnConnectTW").trigger("click");
+        });
+        $(".inStatusIcon").on("click", function () {
+            $(".btnConnectIN").trigger("click");
+        });
+        $(".ytStatusIcon ").on("click", function () {
+            $(".btnConnectYT").trigger("click");
+        });
+
+    },
+    // Logeo con Facebook
+    loginFacebook: function () {
+        FB.login(function () {
+            app.main.getStatusLogin();
+        },/* Esto es para decir lo que vas a permitir a Facebook*/ {scope: 'publish_actions, user_likes'});
+    },
+
+    getStatusLogin: function () {
+        // LLamadas propias de Facebook
+        FB.getLoginStatus(function (response) {
+            if (response.status === 'connected') {
+                //                console.log("connectado");
+                app.visual.pedirTareasRS(app.main.actualRSfacebook);
+            } else if (response.status === 'not_authorized') {
+                //                console.log("Please log into this app.");
+                app.visual.mostrarStatusBtn($(".btnConnectFB").parent(), "alert", "not authorized to perform operation...");
+            } else {
+                //                console.log("Please log into Facebook");
+                app.visual.mostrarStatusBtn($(".btnConnectFB").parent(), "alert", "An error has occurred");
+            }
+        });
+    },
+    facebookGetNumSegidores: function (idCM, callback) {
+        //var a = '/' + idCM + '?fields=likes';
+        //        console.log(a);
+        FB.api('/' + idCM + '?fields=likes', function (response) {
+            //           app.main.numSegidoresFB = response.likes;
+            if (!!callback) {
+                callback(response);
+            }
+        });
+    },
+    crearURlFacebook: function (idCM, tipoRS, lastID) {
+        //lastID para facebook viene como fecha del ultimoPost
+        //habre que convertirla a dateStamp
+        ///  console.log("lastID " + lastID);
+        var url;
+        if (lastID == "" || lastID == null || lastID == 0) {
+            url = '/' + idCM + '/posts?fields=updated_time,created_time,message,comments.summary(true),likes.summary(true),link,full_picture,source,type,shares&limit=100';
+            // console.log("sin ultimo post")
+        } else {
+            //distinto token a facebook
+            url = '/' + idCM + '/posts?fields=updated_time,created_time,message,comments.summary(true),likes.summary(true),link,full_picture,source,type,shares&limit=100&until=' + lastID;
+            //1393245584230208/posts?fields=updated_time,created_time,message,comments,likes,link,picture,source,type,shares&limit=100&until=1426806615
+            // console.log("hay ultimo post" + lastID);
+        }
+        if (app.main.activebtnFB) {
+            app.main.getDatos(url, idCM, tipoRS, lastID, false);
+        }
+    },
+    getDatos: function (url, idCM, tipoRS, lastID, paginado) {
+
+        if (!paginado) {
+            app.main.facebookGetNumSegidores(idCM, function (data) {
+                // console.log(data);
+
+                app.main.numSegidoresFB = data.likes;
+                app.main.arastrarDatosFacebook(url, idCM, tipoRS, lastID);
+                //                app.utils.trace("numSegidores " + app.main.numSegidoresFB);
+            });
+
+
+        } else {
+            app.main.arastrarDatosFacebook(url, idCM, tipoRS, lastID);
+        }
+    },
+    arastrarDatosFacebook: function (url, idCM, tipoRS, lastID) {
+        // console.log("url" + url, "idCM " + idCM, "tipoRS " + tipoRS, "lastID " + lastID);
+        FB.api(url, function (response) {
+            if (!response || response.error) {
+                // console.log('Error facebook');
+                //console.log(response.error);
+                //app.visual.mostrarStatusBtn($(".btnConnectFB").parent(), "off", "");
+                if (response.error.code == 4) {
+                    //console.log("Application request limit reached");
+                    //  4 Application request limit reached
+                    //pedimos entonces otra tarea
+                    app.ajax.cerrarTarea(tipoRS, idCM, app.main.motivoMaxPeticion);
+                    setTimeout(function () {
+                        app.visual.pedirTareasRS(app.main.actualRSfacebook);
+                    }, 600000);
+                } else {
+                    app.ajax.cerrarTarea(tipoRS, idCM, app.main.motivoFail);
+                    app.visual.pedirTareasRS(app.main.actualRSfacebook);
+                }
+            } else {
+                // console.log(response);
+                //console.log('RESPONSE DE FACEBOOK');
+
+                app.main.tempArrayPosts = [];
+
+                //            console.log("facebook done");
+                //            console.log(response);
+                if (app.main.activebtnFB) {
+                    $(".btnConnectFB").parent().find(".txtStatus").text(TEXTOS.T02);
+                }
+                //creamos una array donde va a venir los datos de los posts
+                var len = response.data.length;
+                for (var i = 0; i < len; i++) {
+
+
+                    app.main.countFB = app.main.countFB + 1;
+                    $(".countFB").text(app.main.countFB);
+
+
+                    var objPost = {
+                        codigoPost: "",
+                        texto: "",
+                        numSharer: 0,
+                        numLikes: 0,
+                        numComentarios: 0,
+                        fecha: "",
+                        numAmigosCM: app.main.numSegidoresFB,
+                        postUrl: "",
+                        multimedia: "",
+                        tipoPost: "",
+                        nextPageToken: ""
+
+                    };
+                    //               app.utils.trace("recoremos array");
+
+                    if (!!response.data[i].message) {
+                        objPost.texto = response.data[i].message;
+                    }
+
+                    if (!!response.data[i].shares) {
+                        objPost.numSharer = parseInt(response.data[i].shares.count);
+                    }
+
+                    if (!!response.data[i].likes) {
+                        objPost.numLikes = parseInt(response.data[i].likes.summary.total_count);
+                    }
+
+                    if (!!response.data[i].comments) {
+                        objPost.numComentarios = parseInt(response.data[i].comments.summary.total_count);
+                    }
+
+                    if (response.data[i].type == "video") {
+                        //video
+                        //objPost.tipoPost = "photo";
+                        objPost.multimedia = response.data[i].full_picture;
+                    } else if (response.data[i].type == "photo") {
+                        //photo
+                        objPost.multimedia = response.data[i].full_picture;
+                    }
+
+
+                    objPost.tipoPost = response.data[i].type;
+                    objPost.codigoPost = response.data[i].id;
+                    objPost.fecha = app.utils.convertirFecha(response.data[i].created_time);
+                    var ids = objPost.codigoPost.split("_");
+                    objPost.postUrl = "https://www.facebook.com/permalink.php?story_fbid=" + ids[1] + "&id=" + ids[0];
+                    //numAmigosCM: response.data(i).message
+
+                    app.main.tempArrayPosts.push(objPost);
+                }
+                //            console.log("len " + len);
+
+                if (len != 0 || len != "") {
+                    app.ajax.guardarActividad(parseInt(idCM), parseInt(tipoRS), app.main.tempArrayPosts, function () {
+                        //pedimos siguintes 100 posts
+                        //console.log("next page");
+                        //console.log(response.paging.next);
+                        //hay paginas mas
+                        var urlNextFull = response.paging.next;
+                        //tenemos encontrar donde cortar la url next
+                        //var pos = urlNextFull.indexOf(idCM);
+                        //var urlNext = urlNextFull.substr(parseInt(pos) - 1);
+                        var urlNext = urlNextFull.replace("https://graph.facebook.com/v2.5", "");
+
+
+                        if (app.main.activebtnFB) {
+                            app.main.getDatos(urlNext, idCM, tipoRS, lastID, true);
+                        }
+
+                    });
+                } else {
+                    //no hay mas posts y hay que cerrar la tarea
+                    //                app.utils.trace("no hay mas posts");
+                    app.ajax.cerrarTarea(tipoRS, idCM, app.main.motivoExito);
+                }
+
+
+            }
+        });
+    },
+    /* 
+    ##################
+         Twitter 
+    ################## 
+    */
+
+    loginTwitter: function () {
+        
+        
+        app.visual.pedirTareasRS(app.main.actualRStwitter);
+
+       
+
+    },
+    getDatosTwitter: function (idCM, tipoRS, lastID) {
+
+        //vaciamos la array temporalmente
+        //app.main.tempArrayPosts = {};         var url = "";
+
+        // Llamamos al proxi.php con la url que queramos para hacer la peticion a twitter
+        // Gestiono que se pueda pasar tanto una id como un nombre de usuario!
+
+        //TODO-- Hay que optimizar el codigo 
+        // Poner url dependiente de lso parametros y solo una llamada 
+
+        var url = "count=100";
+        if (isNaN(idCM)) {
+            if (lastID == "" || lastID == null || lastID == 0) {
+                url += '&screen_name=' + idCM;
+            }
+            else {
+                url += '&screen_name=' + idCM + '&max_id=' + lastID;
+            }
+        } else {
+            if (lastID == "" || lastID == null || lastID == 0) {
+                url += '&user_id=' + idCM;
+            }
+            else {
+                url += '&user_id=' + idCM + '&max_id=' + lastID;
+            }
+
+
+        }
+        // LLamada a twitterSubmit
+        if (app.main.activebtnTW) {
+
+            app.main.twitterSubmit( url, idCM, tipoRS);
+        }
+    },
+    twitterSubmit: function (url, idCM, tipoRS) {
+       
+        $.getJSON('php/proxi.php?url=' + encodeURIComponent('statuses/user_timeline.json?' + url), function (response) {
+
+            //console.log(response) 
+            //            console.log("twitter done");
+            //            console.log(response);
+            //creamos una array donde va a venir los datos de los posts
+            app.main.tempArrayTwitts = [];
+            if (app.main.activebtnFB) {
+                $(".btnConnectTW").parent().find(".txtStatus").text(TEXTOS.T03);
+            }
+            var len = response.length;
+            var lastTwitt = null;
+            for (var i = 0; i < len; i++) {
+
+                app.main.countTW = app.main.countTW + 1;
+                $(".countTW").text(app.main.countTW);
+
+
+                var objPost = {
+                    codigoPost: "",
+                    texto: "",
+                    numSharer: 0,
+                    numLikes: 0,
+                    numComentarios: 0,
+                    fecha: "",
+                    numAmigosCM: 0,
+                    postUrl: "",
+                    multimedia: "",
+                    tipoPost: "",
+                    nextPageToken: ""
+
+                };
+                //                app.utils.trace("recoremos array con twitts");
+
+                objPost.codigoPost = response[i].id;
+                objPost.texto = response[i].text;
+                objPost.numSharer = parseInt(response[i].retweet_count);
+                objPost.numLikes = parseInt(response[i].favorite_count);
+                objPost.fecha = app.utils.convertirFecha(response[i].created_at);
+                objPost.numAmigosCM = parseInt(response[i].user.friends_count);
+                var idP = response[i].id_str;
+
+                //objPost.postUrl = "https://twitter.com/CocaCola_es/status/" + idP;
+                // response[i].entities.media[0].url;
+
+
+                if (!!response[i].entities.media) {
+                    if (response[i].entities.media.length != 0) {
+
+                        objPost.tipoPost = "photo";
+                        objPost.multimedia = response[i].entities.media[0].media_url;
+                    }
+                } else {
+                    if (!!response[i].entities.urls) {
+                        if (response[i].entities.urls.length != 0) {
+                            //url del img 
+                            objPost.tipoPost = "video";
+                            objPost.multimedia = response[i].entities.urls[0].url;
+                        }
+                    }
+                }
+
+
+                lastTwitt = response[i].id;
+                app.main.tempArrayTwitts.push(objPost);
+            }
+
+            //max_id es un paramentro del id de twitt desde que quieres recuperar twitts 
+            //y twitter inclue este twitt desde que quieres rastrear
+            //por eso al final siempre va a llegar un objeto con este twitt
+            //            app.utils.trace("length of response " + len);
+
+            if (len == 0 || len == 1 || len == "") {
+                //ya no hay twitts
+
+                //                app.utils.trace("no hay mas twitts");
+                app.ajax.cerrarTarea(tipoRS, idCM, app.main.motivoExito);
+            } else {
+                //hay twitts para gurdar y se puede seguir recuperar el resto
+                app.ajax.guardarActividad(parseInt(idCM), parseInt(tipoRS), app.main.tempArrayTwitts, function () {
+                    //pedimos siguintes 200 twiits
+                    //                    app.utils.trace("lastTwitt " + lastTwitt);
+                    var url = 'https://api.twitter.com/1.1/statuses/user_timeline.json?count=100&user_id=' + idCM + '&max_id=' + lastTwitt;
+
+                    if (app.main.activebtnTW) {
+                        app.main.twitterSubmit( url, idCM, tipoRS);
+                    }
+                });
+            }
+
+        }).fail(function (err) {
+            //todo when the OAuth flow failed
+            //            app.utils.trace("twitter fail");
+            console.log("fail twitter");
+            console.log(err);
+            if (err.status == 429) {
+                //too many request , limit exceeded
+                app.ajax.cerrarTarea(tipoRS, idCM, app.main.motivoMaxPeticion);
+                setTimeout(function () {
+                    app.visual.pedirTareasRS(app.main.actualRStwitter);
+                    //despues de 15 min llamamos la function 
+                }, 900000);
+
+            } else {
+                ///otro error
+                app.ajax.cerrarTarea(tipoRS, idCM, app.main.motivoFail);
+                app.visual.pedirTareasRS(app.main.actualRStwitter);
+            }
+
+
+        });
+    }
+,
+     /* 
+    ##################
+         Instagram 
+    ################## 
+    */
+    loginInstagram: function () {
+
+     app.visual.pedirTareasRS(app.main.actualRSinstagram);
+  
+    },
+   
+
+
+    
+    instagramGetNumSegidores: function ( idCM) {
+
+    },
+    instagramSubmit: function (idCM, primeraPagina, tipoRS, lastID) {
+        var clientid = '6f30cc005dec434e8ca58128efb4e389';
+        // 
+       // num_photos = 100;
+        app.main.tempArrayInstagram = [];
+        username = idCM;
+
+        if (primeraPagina) {
+            app.main.instagramGetNumSegidores(idCM);
+        }
+
+        // Hacemos una conexion diferente si el idCM pasado es un ID o un Username
+        if (isNaN(idCM))
+        {
+            
+            $.ajax({ 
+            url: 'https://api.instagram.com/v1/users/search',
+            dataType: 'jsonp',
+            type: 'GET',
+            data: { client_id: clientid, q: username },
+            success: function (data) {
+                console.log(data);
+                $.ajax({
+                    url: 'https://api.instagram.com/v1/users/' + data.data[0].id + '/media/recent', 
+                    dataType: 'jsonp',
+                    type: 'GET',
+                    data: { client_id: clientid, count: 100 },
+                    success: function (response) {
+                        app.main.getTotalDataInstagram(response, idCM, tipoRS,lastID);
+                    }
+                });
+            },
+            error: function (data) {
+                console.log(data);
+            }
+        });}else{
+            $.ajax({
+                // Ponemos username, pero realmente sería UserID
+                url: 'https://api.instagram.com/v1/users/' + username + '/media/recent',
+                dataType: 'jsonp',
+                type: 'GET',
+                data: {client_id: clientid,count:100},
+                success: function(response){
+                    app.main.getTotalDataInstagram(response, idCM, tipoRS,lastID);
+                },
+                error: function(data){
+                    console.log(data); 
+                }
+            });
+        }
+
+     
+      
+        
+    },
+  
+
+    //Funcion que obtiene los datos de instagram una vez obtenido el response de Instagram
+    getTotalDataInstagram: function(response,idCM,tipoRS,lastID){
+        console.log("instagram done");
+
+        if (app.main.activebtnIN) {
+            $(".btnConnectIN").parent().find(".txtStatus").text(TEXTOS.T04);
+        }
+        //creamos una array donde va a venir los datos de los posts
+        var len = response.data.length;
+        //var lastTwitt = null;
+        for (var i = 0; i < len; i++) {
+
+
+            app.main.countIN = app.main.countIN + 1;
+            $(".countIN").text(app.main.countIN);
+
+            var objPost = {
+                codigoPost: "",
+                texto: "",
+                numSharer: 0,
+                numLikes: 0,
+                numComentarios: 0,
+                fecha: "",
+                numAmigosCM: app.main.numSuscriptIN,
+                postUrl: "",
+                multimedia: "",
+                tipoPost: "",
+                nextPageToken: ""
+
+
+            };
+            //                console.log("cada objeto");
+            //                console.log(response.data[i]);
+
+            objPost.codigoPost = response.data[i].id;
+            objPost.postUrl = response.data[i].link;
+            var d = new Date(response.data[i].created_time * 1000);
+            objPost.fecha = app.utils.convertirFecha(d);
+            objPost.numLikes = parseInt(response.data[i].likes.count);
+            objPost.numComentarios = parseInt(response.data[i].comments.count);
+            objPost.tipoPost = response.data[i].type;
+            //                objPost.numAmigosCM = parseInt(numAmigos);
+
+            if (response.data[i].caption != null) {
+                if (!!response.data[i].caption.text) {
+                    objPost.texto = response.data[i].caption.text;
+                }
+            }
+
+            if (response.data[i].type == "video") {
+                objPost.multimedia = response.data[i].images.standard_resolution.url;
+            } else if (response.data[i].type == "image") {
+                objPost.multimedia = response.data[i].images.standard_resolution.url;
+            } else {
+
+            }
+
+            app.main.tempArrayInstagram.push(objPost);
+        }
+        app.ajax.guardarActividad(parseInt(idCM), parseInt(tipoRS), app.main.tempArrayInstagram, function (){ 
+        if (app.main.activebtnIN) {
+              
+            app.main.instagramSubmit(app.main.IDinstagramActualCM,false, 3, lastID);
+        }
+        });
+        app.ajax.cerrarTarea(tipoRS, idCM, app.main.motivoExito);
+    },
+    error: function (data2) {
+
+        
+        console.log("fail instagram");
+        console.log(err);
+        if (err.responseText.indexOf('429') != -1) {
+            //	The maximum number of requests per hour has been exceeded.
+            app.ajax.cerrarTarea(tipoRS, idCM, app.main.motivoMaxPeticion);
+            setTimeout(function () {
+                app.visual.pedirTareasRS(app.main.actualRSinstagram);
+                //despues de 10 min llamamos la function 
+            }, 3600000);
+
+        } else {
+            ///otro error
+            app.ajax.cerrarTarea(tipoRS, idCM, app.main.motivoFail);
+            app.visual.pedirTareasRS(app.main.actualRSinstagram);
+        }
+        console.log(data2);
+        //         
+        //            console.log("response.pagination.next_url" + response.pagination.next_url);
+
+
+
+    },
+
+     /* 
+    ##################
+         Youtube 
+    ################## 
+    */
+    initYT: function () {
+        gapi.client.setApiKey(app.main.ytApikey);
+        gapi.client.load('youtube', 'v3');
+
+    },
+    getDatosYoutube: function (idCM, queRS, lastPost) {
+        // console.log("recuperamos playlist del canal");
+
+        app.main.getListChannels(idCM, queRS, lastPost);
+    },
+    getListChannels: function (idCM, queRS, lastPost) {
+        app.main.numSubscriptoresYT = 0;
+       
+        /* Cambio de la búsqueda de youtube :
+            Antes: lo hacia por ID
+            Ahora: Lo hace por nombre de usuario (Username)
+          
+          */
+            gapi.client.youtube.channels.list({
+                part: "contentDetails,statistics",
+                //id: idCM,
+                forUsername: idCM
+
+            }).execute(function (response) {
+                // Si no me devuelve datos (por que no existe el canal de youtube o hemos metido una ID)
+                if (response.items[0] == undefined) {
+                    app.ajax.cerrarTarea(queRS, idCM, app.main.motivoFail);
+                    app.visual.pedirTareasRS(app.main.actualRSyoutube);
+                }//Si me devuelve datos
+                else {
+                    
+                    var idPlaylist = response.items[0].contentDetails.relatedPlaylists.uploads;
+                    app.main.numSubscriptoresYT = response.items[0].statistics.subscriberCount;
+                    //            console.log("idPlaylist");
+                    //            console.log(idPlaylist);
+                    app.main.getPlaylistItems(idCM, queRS, idPlaylist, lastPost);
+                }
+            });
+        
+        
+    },
+    getPlaylistItems: function (idCM, queRS, idPlaylist, pagToken) {
+        var options;
+        if (!!pagToken && pagToken != 0 && pagToken != "") {
+            // console.log("hay mas paginas, paginamos");
+            options = {
+                part: "snippet",
+                playlistId: idPlaylist,
+                maxResults: 50,
+                pageToken: pagToken
+            };
+        } else {
+            // console.log("es la primera o la uniqua pagina");
+
+            options = {
+                part: "snippet",
+                playlistId: idPlaylist,
+                maxResults: 50
+            };
+        }
+
+        gapi.client.youtube.playlistItems.list(options).execute(function (responseVideos) {
+
+            var videos = responseVideos.items;
+            app.main.tempArrayYoutTube = [];
+            for (var i = 0; i < videos.length; i++) {
+
+                app.main.countYT = app.main.countYT + 1;
+                $(".countYT").text(app.main.countYT);
+
+
+                var idVideo = videos[i].snippet.resourceId.videoId;
+                var esUltimoVideo = false;
+                var esFinal = false;
+
+                if (i + 1 == videos.length) {
+                    //es el ultimo video 
+                    //console.log("i == lenght");
+                    //console.log("es el ultimo video");
+                    esUltimoVideo = true;
+                }
+                //console.log("responseVideos.nextPageToken");
+                //console.log(responseVideos.nextPageToken);
+                if (responseVideos.nextPageToken == null || responseVideos.nextPageToken == 'undefined') {
+                    //console.log("es final de todo es la ultima pagina y hay que cerrar la tarea ");
+                    esFinal = true;
+                }
+
+                app.main.getVideoDetalles(idCM, queRS, idVideo, esUltimoVideo, esFinal, function () {
+//                    //si es ultimo y se ha guardado toda la array
+                    if (!!responseVideos.nextPageToken && responseVideos.nextPageToken != "") {
+                        //paginamos y tenemos recuperar otros playlist
+                        // console.log("PEDIMOS SIGUIENTE PAGINA");
+                        app.main.getPlaylistItems(idCM, queRS, idPlaylist, responseVideos.nextPageToken);
+                    }
+
+                });
+            }
+
+
+
+
+        });
+    },
+    getVideoDetalles: function (idCM, queRS, idVideo, esUltimo, esFinal, callback) {
+        gapi.client.youtube.videos.list({
+            part: "snippet,contentDetails,statistics",
+            id: idVideo
+        }).execute(function (responseDetails) {
+
+
+            // console.log("get video detalles");
+//            console.log(responseDetails);
+            if (responseDetails.items.length > 0) {
+                var elem = responseDetails.items[0];
+
+
+
+
+                if (app.main.activebtnYT) {
+                    $(".btnConnectYT").parent().find(".txtStatus").text(TEXTOS.T05);
+                }
+                var objPost = {
+                    codigoPost: "",
+                    texto: "",
+                    numSharer: 0,
+                    numLikes: 0,
+                    numComentarios: 0,
+                    fecha: "",
+                    numAmigosCM: app.main.numSubscriptoresYT,
+                    postUrl: "",
+                    multimedia: "",
+                    tipoPost: "video",
+                    nextPageToken: ""
+
+                };
+
+
+                objPost.texto = elem.snippet.title;
+                objPost.numLikes = parseInt(elem.statistics.likeCount) + parseInt(elem.statistics.dislikeCount);
+                objPost.numComentarios = parseInt(elem.statistics.commentCount);
+                objPost.multimedia = elem.snippet.thumbnails.high.url;
+//          objPost.tipoPost = response.data[i].type;
+                objPost.codigoPost = elem.id;
+                objPost.fecha = app.utils.convertirFecha(elem.snippet.publishedAt);
+                objPost.postUrl = "https://www.youtube.com/watch?v=" + objPost.codigoPost;
+                if (!!responseDetails.nextPageToken) {
+                    objPost.nextPageToken = responseDetails.nextPageToken;
+                }
+
+                //numAmigosCM: response.data(i).message
+
+                app.main.tempArrayYoutTube.push(objPost);
+                //console.log("es ultimo " + esUltimo);
+
+                if (!!esUltimo) {
+                    if (esUltimo) {
+                        //console.log("idCM " + idCM + " queRS " + parseInt(queRS) + " app.main.tempArrayPosts ");
+                        app.ajax.guardarActividad(idCM, parseInt(queRS), app.main.tempArrayYoutTube, function () {
+                            //console.log("GUARDAMOS ACTIVIDAD");
+                            if (!!callback) {
+                                callback();
+                            }
+
+                            if (esFinal) {
+                                // console.log("es final cerrar tarea");
+                                app.ajax.cerrarTarea(queRS, idCM, app.main.motivoExito);
+                            }
+                        });
+                    }
+                }
+            }
+        });
+    }
+};
+
+
+ /* 
+    ##################
+    Funciones que podremos utilizar a nivel global 
+    ################## 
+    */
+
+
+app.navegacion = {};
+app.utils = {
+    trace: function () {
+        try {
+            for (var i = 0; i < arguments.length; i++)
+                console.log(arguments[i]);
+        } catch (err) {
+        }
+    }
+    ,
+    convertirFecha: function (fecha) {
+        var mifecha = new Date(fecha);
+        mifecha = mifecha.toLocaleDateString();
+        return mifecha;
+    }
+};
+
+ /* 
+    ##################
+         Parte de llamadas ajax 
+    ################## 
+    */
+app.ajax = {
+    webServiceStringify: function (methodWS, datos, success, error) {
+        var dataParse = JSON.stringify(datos);
+        var parsedData = JSON.stringify({post: dataParse});
+        $.ajax({
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            data: parsedData,
+            url: app.main.site_URL + methodWS,
+            success: function (data) {
+                if (data.d.resultado.toLowerCase() == "ok") {
+                    if (!!success) {
+                        success(data);
+                    }
+                } else {
+                    if (!!error) {
+                        error(data);
+                    }
+                }
+            },
+            error: function (e) {
+//                app.utils.trace(e);
+                //                app.utils.trace("failed ws");
+            }
+        });
+    },
+    webService: function (methodWS, datos, success, error) {
+
+
+        $.ajax({
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(datos),
+            url: app.main.site_URL + methodWS,
+            success: function (data) {
+                if (data.d.resultado.toLowerCase() == "ok") {
+                    if (!!success) {
+                        success(data);
+                    }
+                } else {
+                    if (!!error) {
+                        error(data);
+                    }
+                }
+            },
+            error: function (e) {
+//                app.utils.trace(e);
+                //                app.utils.trace("failed ws");
+            }
+        });
+    },
+    dameTarea: function (tipo, callback, error) {
+
+        //app.visual.precargaSoporteOnOff(true);
+        // console.log("dame Tarea tipo " + tipo);
+        var datos = {"tipoRS": tipo};
+        app.ajax.webService("dameTarea", datos,
+                function (data) {
+                    //success
+                    //console.log(data);
+                    if (!!callback) {
+                        callback(data);
+                    }
+
+                    if (data.d.data.codigo == -1) {
+                        //All tasks are asigned."
+                        setTimeout(function () {
+                            app.visual.pedirTareasRS(tipo);
+                        }, 600000);
+                    }
+                },
+                function (data) {
+                    //error
+
+
+                    if (!!error) {
+                        error(data);
+                    }
+                });
+    },
+    guardarActividad: function (IDperfilCM, tipoRS, arrPosts, callback) {
+        //console.log(arrPosts);
+        //app.visual.precargaSoporteOnOff(true);
+        var datos = {"codigoCM": IDperfilCM, "tipoRS": tipoRS, "posts": arrPosts};
+        app.ajax.webServiceStringify("guardarActividad", datos,
+                function (data) {
+                    //success
+                    app.utils.trace("ok guardar");
+
+
+                    if (!!callback) {
+                        callback();
+                    }
+                },
+                function (data) {
+                    
+                    app.ajax.cerrarTarea(tipoRS, IDperfilCM, app.main.motivoFail);
+                    app.visual.pedirTareasRS(tipoRS);
+                  
+                });
+    },
+    cerrarTarea: function (tipo, codigoCM, motivoCiere) {
+
+        //app.visual.precargaSoporteOnOff(true);
+        var datos = {"tipoRS": tipo, "codigoCM": codigoCM, "motivoCierre": motivoCiere};
+        app.ajax.webService("cerrarTarea", datos,
+                function (data) {
+                    //success
+                    var bloque;
+                    switch (tipo) {
+                        case 1:
+                            bloque = $(".btnConnectFB").parent();
+                            if (motivoCiere == 1) {
+                                app.visual.pedirTareasRS(app.main.actualRSfacebook);
+                            }
+
+                            break;
+                        case 2:
+                            bloque = $(".btnConnectTW").parent();
+                            if (motivoCiere == 1) {
+                                app.visual.pedirTareasRS(app.main.actualRStwitter);
+                            }
+                            break;
+
+                        case 3:
+                            bloque = $(".btnConnectIN").parent();
+                            if (motivoCiere == 1) {
+                                app.visual.pedirTareasRS(app.main.actualRSinstagram);
+                            }
+                            break;
+
+                        case 4:
+                            bloque = $(".btnConnectYT").parent();
+                            if (motivoCiere == 1) {
+                                app.visual.pedirTareasRS(app.main.actualRSyoutube);
+                            }
+                            break;
+                    }
+                },
+                function (data) {
+                    //error
+                });
+    }
+
+};
+
+app.visual = {
+    mostrarStatusBtn: function (bloque, state, text) {
+        switch (state) {
+            // Estamos diciendole que al bloque le añada las clases de conectado o remueva las de conexion de alerta
+            case "on":
+                $(bloque).removeClass("connected alert");
+                $(bloque).addClass("connected");
+                break;
+            case "off":
+                $(bloque).removeClass("connected alert");
+                break;
+
+            case "alert":
+                $(bloque).removeClass("connected alert");
+                $(bloque).addClass("alert");
+                break;
+        }
+
+        $(bloque).find(".txtStatus").text("");
+        $(bloque).find(".txtStatus").text(text);
+
+    },
+    pedirTareasRS: function (queRS) {
+        if (queRS == 1) {
+            if (app.main.activebtnFB) {
+                app.ajax.dameTarea(queRS,
+                        function (data) {
+                            //callback de la function dameTarea (cuando servidor devuelve idCM puedemos arastrar posts )
+//                    app.utils.trace("callback dameTarea");
+                            //                    app.utils.trace(data.d.data.codigoCM);
+                            app.main.IDfacebookActualCM = parseInt(data.d.data.codigoCM);
+                            var lastID = data.d.data.ultimoPostId;
+                            //var lastFecha_dateStamp = data.data.ultimaFechaPost;
+                            app.main.crearURlFacebook(app.main.IDfacebookActualCM, queRS, lastID);
+
+
+                        }, function (data) {
+                    //ko del servidor
+                    app.visual.mostrarStatusBtn($(".btnConnectFB").parent(), "alert", data.d.data.mensaje);
+                })
+            }
+
+        } else if (queRS == 2) {
+            if (app.main.activebtnTW) {
+                app.ajax.dameTarea(queRS,
+                        function (data) {
+                            //callback de la function dameTarea (cuando servidor devuelve idCM puedemos arastrar posts )
+//                          app.utils.trace("callback dameTarea");
+                            //                        app.utils.trace(data.d.data.codigoCM);
+                            app.main.IDtwitterActualCM = data.d.data.codigoCM;
+                            var lastPost = data.d.data.ultimoPostId;
+
+                            app.main.getDatosTwitter(app.main.IDtwitterActualCM, queRS, lastPost);
+
+                        }, function (data) {
+                    //ko del servidor
+                    app.visual.mostrarStatusBtn($(".btnConnectTW").parent(), "alert", data.d.data.mensaje);
+                }
+                );
+            }
+        } else if (queRS == 3) {
+            if (app.main.activebtnIN) {
+                app.ajax.dameTarea(queRS, function (data) {
+                    app.main.IDinstagramActualCM = data.d.data.codigoCM;
+                    var lastID = data.d.data.ultimoPostId;
+                   
+                    app.main.instagramSubmit(app.main.IDinstagramActualCM,true, queRS, lastID);
+
+                }, function (data) {
+                    //ko del servidor
+                    app.visual.mostrarStatusBtn($(".btnConnectIN").parent(), "alert", data.d.data.mensaje);
+                }
+                );
+            }
+        } else {
+            if (app.main.activebtnYT) {
+                app.ajax.dameTarea(queRS, function (data) {
+                    app.main.IDYoutubeActualCM = data.d.data.codigoCM;
+                    var lastPost = data.d.data.ultimoPostId;
+
+                    app.main.getDatosYoutube(app.main.IDYoutubeActualCM, queRS, lastPost);
+
+                }, function (data) {
+                    //ko del servidor
+                    app.visual.mostrarStatusBtn($(".btnConnectYT").parent(), "alert", data.d.data.mensaje);
+                }
+                );
+            }
+        }
+    }};
+
+
+TEXTOS = {
+    T01: "Connecting ... It may takes some time",
+    T02: "Tracking data from facebook ...",
+    T03: "Tracking data from twitter ...",
+    T04: "Tracking data from instagram ...",
+    T05: "Tracking data from youtube ..."
+
+};
+// Cuando carga el contenido del DOM , se llama a la funcion init()
+document.addEventListener('DOMContentLoaded', function () {
+    app.main.init();
+});

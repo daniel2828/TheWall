@@ -1,0 +1,27 @@
+{
+    "manifest_version": 2,
+    "name": "Social Media Wall",
+    "description": "This extension track the posts and twitts from facebook, twitter and instagram.",
+    "version": "1.0",
+    "browser_action": {
+        "default_icon": "icon.png",
+        "default_popup": "popup.html"
+    },
+    
+   "background": {
+        "scripts": ["js/jquery-1.11.3.min.js", "main.js"],
+        "scripts": ["js/oauth.js", "main.js"],
+        "persistent": false
+    },
+    
+    
+    "permissions": [
+        "activeTab",
+        "https://ajax.googleapis.com/"
+    ],
+    
+    "externally_connectable": {
+        "matches": ["https://oauth.io/*"],
+        "matches": ["https://www.facebook.com/*"]
+    }
+}
